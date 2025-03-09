@@ -1,3 +1,10 @@
+# Starlink-tracker
+
+To run the application:
+```
+python3 fetchApi.py --api_key <api_key> 
+```
+
 ```
 python -m venv venv
 source venv/bin/activate
