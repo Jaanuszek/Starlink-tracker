@@ -1,0 +1,14 @@
+branca==0.8.1
+certifi==2025.1.31
+charset-normalizer==3.4.1
+folium==0.19.5
+idna==3.10
+Jinja2==3.1.6
+jplephem==2.22
+MarkupSafe==3.0.2
+numpy==2.2.3
+requests==2.32.3
+sgp4==2.24
+skyfield==1.51
+urllib3==2.3.0
+xyzservices==2025.1.0
