@@ -79,15 +79,6 @@ map.drawcountries(linewidth=0.25)
 
 posList = []
 
-# pathReceived = getStarlikPosiotion()
-# lat, lon = zip(*pathReceived)
-# # for point in pathReceived:
-# #     lat = point[1]
-# #     lon = point[0]
-# lons, lats = map(lon, lat)
-# map.plot(lons, lats, marker = 'o', color='r')
 
-
-# plt.title("siemaEniu")
 ani = FuncAnimation(fig, updateMap, interval=5000, cache_frame_data=False)
 plt.show()
