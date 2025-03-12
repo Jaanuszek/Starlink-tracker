@@ -21,6 +21,9 @@
     <ClCompile Include="main.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h">
@@ -61,6 +64,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="external\curl\libcurl.lib" />
+    <Library Include="external\curl\lib\x64\libcurl.lib" />
+    <Library Include="external\curl\lib\x86\libcurl-d.lib" />
   </ItemGroup>
 </Project>
