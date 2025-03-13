@@ -1,49 +1,90 @@
-#include <iostream>
-#include <curl.h>
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include <iostream>  
+#include <fstream>  
+#include <string>  
+#include <curl/curl.h>  
+#include <glad/glad.h>  
+#include <GLFW/glfw3.h>  
+#include <json.hpp>  
 
+using std::string;  
 
-int main() {
-    // opengl test
-    if (!glfwInit())
-    {
-        std::cout << "Failed to initialize GLFW" << std::endl;
-    }
-    else
-    {
-        std::cout << "GLFW initialized" << std::endl;
-    }
+int main() {  
+   // opengl test  
+   if (!glfwInit())  
+   {  
+       std::cout << "Failed to initialize GLFW" << std::endl;  
+   }  
+   else  
+   {  
+       std::cout << "GLFW initialized" << std::endl;  
+   }  
 
-	//libcurl test
-    CURL* curl;
-    CURLcode res;
+   // libcurl test  
+   CURL* curl;  
+   CURLcode res;  
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+   curl_global_init(CURL_GLOBAL_DEFAULT);  
 
-    // Tworzenie uchwytu dla po³¹czenia
-    curl = curl_easy_init();
-    if (curl) {
-        // Ustawianie URL do pobrania
-        curl_easy_setopt(curl, CURLOPT_URL, "http://www.example.com");
+   // Creating a handle for the connection  
+   curl = curl_easy_init();  
+   if (curl) {  
+       // Setting the URL to download  
+       std::string API_KEY;  
+       std::fstream file("apiKey.txt");  
+       if (file.is_open()) {  
+           std::getline(file, API_KEY);  
+           file.close();  
+       }  
+       else {  
+           std::cerr << "Failed to open apiKey.txt" << std::endl;  
+       }  
+       std::cout << "API Key apiKey: " << API_KEY << std::endl;  
 
-        // Wykonanie zapytania
-        res = curl_easy_perform(curl);
+       string SAT_ID = "56144";  
+       string LAT = "52.2298";  
+       string LON = "21.0122";  
+       string ALT = "100";  
+       string url = "https://api.n2yo.com/rest/v1/satellite/positions/" + SAT_ID + "/" + LAT + "/" + LON + "/" + ALT + "/1/?apiKey=" + API_KEY;  
+       std::cout << url.c_str() << std::endl;  
+       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());  
 
-        // Sprawdzanie, czy wyst¹pi³y b³êdy
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-        else {
-            std::cout << "Strona zosta³a pobrana pomyœlnie!" << std::endl;
-        }
+       // Set the User-Agent to avoid being blocked by some servers  
+       curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");  
 
-        // Zwalnianie uchwytu
-        curl_easy_cleanup(curl);
-    }
+       // Performing the request  
+       res = curl_easy_perform(curl);  
 
-    // Zwalnianie zasobów globalnych
-    curl_global_cleanup();
+       // Checking for errors  
+       if (res != CURLE_OK) {  
+           std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;  
+       }  
+       else {  
+           std::cout << "Page downloaded successfully!" << std::endl;  
+       }  
 
-    return 0;
+       // Releasing the handle  
+       curl_easy_cleanup(curl);  
+   }  
+
+   // Releasing global resources  
+   curl_global_cleanup();  
+
+   // nlohmann::json test  
+   nlohmann::json j = {  
+       {"pi", 3.141},  
+       {"happy", true},  
+       {"name", "niels"},  
+       {"nothing", nullptr},  
+       {"answer", {  
+           {"everything", 42}  
+       }},  
+       {"list", {1, 0, 2}},  
+       {"object", {  
+           {"currency", "usd"},  
+           {"value", 42.99}  
+       }}  
+   };  
+   std::cout << j["pi"] << std::endl;  
+
+   return 0;  
 }

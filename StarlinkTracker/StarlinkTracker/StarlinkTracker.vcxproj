@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -93,6 +93,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)StarlinkTracker\external\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -109,13 +111,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\openGL;$(SolutionDir)StarlinkTracker\external\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libcurl.lib;msvcprtd.lib;uuid.lib;ucrt.lib;ws2_32.lib;wldap32.lib;advapi32.lib;glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib</AdditionalDependencies>
+      <AdditionalDependencies>libcurl.lib;libssl.lib;libcrypto.lib;uuid.lib;ucrt.lib;ws2_32.lib;wldap32.lib;advapi32.lib;glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;msvcrt.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(WindowsSdkDir);$(UniversalCRT_LibraryPath_x64);$(AssemblySearchPaths);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -126,7 +130,8 @@
       <PreprocessorDefinitions>CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDIR)\StarlinkTracker\external\curl</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)StarlinkTracker\external\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,8 +148,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDIR)\StarlinkTracker\external\curl</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\openGL;$(SolutionDir)StarlinkTracker\external\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,7 +158,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(WindowsSdkDir);$(UniversalCRT_LibraryPath_x64);$(AssemblySearchPaths);$(WindowsSDK_LibraryPath_x64)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libcurl.lib;msvcprtd.lib;uuid.lib;ucrt.lib;ws2_32.lib;wldap32.lib;advapi32.lib;glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib</AdditionalDependencies>
+      <AdditionalDependencies>libcurl.lib;libssl.lib;libcrypto.lib;uuid.lib;ucrt.lib;ws2_32.lib;wldap32.lib;advapi32.lib;glfw3.lib;opengl32.lib;user32.lib;gdi32.lib;shell32.lib;msvcrt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

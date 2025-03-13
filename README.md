@@ -1,5 +1,16 @@
 # Starlink-tracker
 
+## C++ Program
+
+For now, the program should be run in `Release` configuration on `x64` platform
+
+### Requirements
+* Visual Studio 2022 with C++ packages
+* OpenSSL
+
+`cmake -B buildOpenSSL -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCURL_STATICLIB=ON -DCURL_USE_LIBPSL=OFF -DCURL_USE_OPENSSL=ON -DOPENSSL_ROOT_DIR="C:\Program Files\OpenSSL-Win64" -DOPENSSL_INCLUDE_DIR="C:\Program Files\OpenSSL-Win64\include" -DOPENSSL_CRYPTO_LIBRARY="C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD\libcrypto.lib" -DOPENSSL_SSL_LIBRARY="C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD\libssl.lib"`
+
+## Python program
 To run the application:
 ```
 python3 fetchApi.py --api_key <api_key> 
