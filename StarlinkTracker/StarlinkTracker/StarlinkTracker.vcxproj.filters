@@ -64,7 +64,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="external\curl\lib\x64\libcurl.lib" />
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
+    <Library Include="external\curl\lib\x64\libcurl.lib" />
   </ItemGroup>
 </Project>
