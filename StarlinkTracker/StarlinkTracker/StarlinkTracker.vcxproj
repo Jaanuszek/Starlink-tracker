@@ -73,19 +73,19 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
-    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
     <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
-    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl</IncludePath>
-    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
