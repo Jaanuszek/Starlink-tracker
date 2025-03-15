@@ -5,24 +5,37 @@
 #include <glad/glad.h>  
 #include <GLFW/glfw3.h>  
 #include <json.hpp>  
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 using std::string;
 
-// Wierzcho³ki trójk¹ta (wspó³rzêdne OpenGL)
-const float triangleVertices[3][2] = {
-    { 0.0f,  0.5f},  // Górny wierzcho³ek
-    {-0.5f, -0.5f},  // Lewy dolny
-    { 0.5f, -0.5f}   // Prawy dolny
+// Wierzcho³ki trójk¹ta (wspó³rzêdne OpenGL, przed transformacj¹)
+const glm::vec3 triangleVertices[3] = {
+    { 0.0f,  0.5f, 0.0f},  // Górny wierzcho³ek
+    {-0.5f, -0.5f, 0.0f},  // Lewy dolny
+    { 0.5f, -0.5f, 0.0f}   // Prawy dolny
 };
 
-// Funkcja sprawdzaj¹ca, czy punkt (px, py) znajduje siê w trójk¹cie
-bool isPointInTriangle(float px, float py) {
-    auto [x1, y1] = triangleVertices[0];
-    auto [x2, y2] = triangleVertices[1];
-    auto [x3, y3] = triangleVertices[2];
+// Globalna zmienna do œledzenia k¹ta obrotu
+float rotationAngle = 0.0f;
+float rotationSpeed = 0.01f;
 
-    // Obliczanie pól powierzchni trójk¹tów metod¹ iloczynu wektorowego
-    float A = 0.5 * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
+// Funkcja sprawdzaj¹ca, czy punkt (px, py) znajduje siê w trójk¹cie (po transformacji)
+bool isPointInTriangle(float px, float py, glm::mat4 transform) {
+    glm::vec4 v1 = transform * glm::vec4(triangleVertices[0], 1.0f);
+    glm::vec4 v2 = transform * glm::vec4(triangleVertices[1], 1.0f);
+    glm::vec4 v3 = transform * glm::vec4(triangleVertices[2], 1.0f);
+
+    float x1 = v1.x, y1 = v1.y;
+    float x2 = v2.x, y2 = v2.y;
+    float x3 = v3.x, y3 = v3.y;
+
+    float A = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
     float sign = A < 0 ? -1.0f : 1.0f;
 
     float s = sign * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
@@ -34,33 +47,29 @@ bool isPointInTriangle(float px, float py) {
 // Funkcja obs³ugi klikniêcia myszk¹
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        // Pobranie pozycji kursora w pikselach
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        // Pobranie rozmiaru okna
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 
-        // Konwersja wspó³rzêdnych pikselowych do OpenGL (-1 do 1)
         float x = (xpos / width) * 2.0f - 1.0f;
         float y = 1.0f - (ypos / height) * 2.0f;
 
-        // Sprawdzenie, czy punkt jest w trójk¹cie
-        if (isPointInTriangle(x, y)) {
+        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        if (isPointInTriangle(x, y, transform)) {
             std::cout << "Klikniêto w trójk¹t! Wspó³rzêdne OpenGL: (" << x << ", " << y << ")\n";
         }
     }
 }
 
 int main() {
-    // Inicjalizacja GLFW
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Tworzenie okna
     GLFWwindow* window = glfwCreateWindow(800, 600, "Kliknij w trojkat", NULL, NULL);
     if (!window) {
         std::cerr << "B³¹d tworzenia okna GLFW!" << std::endl;
@@ -68,25 +77,21 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);  // Ustawienie obs³ugi myszy
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
-    // Inicjalizacja GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "B³¹d inicjalizacji GLAD!" << std::endl;
         return -1;
     }
 
-    // Ustawienie viewportu
     glViewport(0, 0, 800, 600);
 
-    // Definicja wierzcho³ków trójk¹ta
     float vertices[] = {
          0.0f,  0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
          0.5f, -0.5f, 0.0f
     };
 
-    // Tworzenie VAO i VBO
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -100,12 +105,12 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // Shader
     const char* vertexShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec3 aPos;
+        uniform mat4 transform;
         void main() {
-            gl_Position = vec4(aPos, 1.0);
+            gl_Position = transform * vec4(aPos, 1.0);
         }
     )";
 
@@ -133,20 +138,47 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Pêtla renderuj¹ca
+    int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+
+    // Init ImGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
     while (!glfwWindowShouldClose(window)) {
+        rotationAngle += rotationSpeed;
+        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("My Window");
+        ImGui::Text("Hello");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // Sprz¹tanie
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(shaderProgram);
