@@ -16,13 +16,8 @@ struct Satellite {
     int satid;
     std::string satname;
     int transactionscount;
-    float satlatitude;
-    float satlongitude;
-    float azimuth;
-    float elevation;
-    float ra;
-    float dec;
-    int timestamp;
+    std::string tleLine1;
+    std::string tleLine2;
 };
 
 std::vector<Satellite> satellites;
@@ -43,15 +38,8 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 }
 
 void fetchDataFromAPI(const std::string& apiKey) {
-    std::string SAT_ID = "56144";
-    std::string LAT = "52.2298";
-    std::string LON = "21.0122";
-    std::string ALT = "100";
-    std::string url = "https://api.n2yo.com/rest/v1/satellite/positions/" + SAT_ID + "/" + LAT + "/" + LON + "/" + ALT + "/1/?apiKey=" + apiKey;
-
-    CURL* curl;
-    CURLcode res;
-    std::string satData;
+    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
+    std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + apiKey;
 
     curl = curl_easy_init();
     if (curl) {
@@ -69,47 +57,30 @@ void fetchDataFromAPI(const std::string& apiKey) {
             try {
                 nlohmann::json parsedData = nlohmann::json::parse(satData);
 
-                if (parsedData.contains("positions") && parsedData["positions"].is_array()) {
-                    auto positions = parsedData["positions"];
-                    for (auto& position : positions) {
-                        Satellite satellite;
+                if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
+                    const auto& info = parsedData["info"];
+                    Satellite satellite;
+                    satellite.satid = info["satid"].get<int>();
+                    satellite.satname = info["satname"].get<std::string>();
+                    satellite.transactionscount = info["transactionscount"].get<int>();
 
-                        if (position.contains("satid") && position["satid"].is_number()) {
-                            satellite.satid = position["satid"];
-                        }
-                        if (position.contains("satname") && position["satname"].is_string()) {
-                            satellite.satname = position["satname"];
-                        }
-                        if (position.contains("transactionscount") && position["transactionscount"].is_number()) {
-                            satellite.transactionscount = position["transactionscount"];
-                        }
-                        if (position.contains("satlatitude") && position["satlatitude"].is_number()) {
-                            satellite.satlatitude = position["satlatitude"];
-                        }
-                        if (position.contains("satlongitude") && position["satlongitude"].is_number()) {
-                            satellite.satlongitude = position["satlongitude"];
-                        }
-                        if (position.contains("azimuth") && position["azimuth"].is_number()) {
-                            satellite.azimuth = position["azimuth"];
-                        }
-                        if (position.contains("elevation") && position["elevation"].is_number()) {
-                            satellite.elevation = position["elevation"];
-                        }
-                        if (position.contains("ra") && position["ra"].is_number()) {
-                            satellite.ra = position["ra"];
-                        }
-                        if (position.contains("dec") && position["dec"].is_number()) {
-                            satellite.dec = position["dec"];
-                        }
-                        if (position.contains("timestamp") && position["timestamp"].is_number()) {
-                            satellite.timestamp = position["timestamp"];
+                    if (parsedData["tle"].is_string()) {
+                        std::string tle = parsedData["tle"].get<std::string>();
+
+                        size_t splitPos = tle.find("\r\n");
+                        if (splitPos != std::string::npos) {
+                            satellite.tleLine1 = tle.substr(0, splitPos);
+                            satellite.tleLine2 = tle.substr(splitPos + 2);
                         }
 
                         satellites.push_back(satellite);
                     }
+                    else {
+                        std::cerr << "TLE field is missing or not a string!" << std::endl;
+                    }
                 }
                 else {
-                    std::cerr << "No position data found!" << std::endl;
+                    std::cerr << "Required fields are missing in the response!" << std::endl;
                 }
             }
             catch (const nlohmann::json::exception& e) {
@@ -165,22 +136,17 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void renderSatelliteDataImGui() {
     ImGui::Begin("Satellite Data");
-
+    
     if (!satellites.empty()) {
         ImGui::Text("Satellite Information");
         ImGui::Separator();
 
-        if (ImGui::BeginTable("SatelliteDataTable", 10, ImGuiTableFlags_Borders)) {
+        if (ImGui::BeginTable("SatelliteDataTable", 5, ImGuiTableFlags_Borders)) {
             ImGui::TableSetupColumn("SatID");
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Transaction Count");
-            ImGui::TableSetupColumn("Latitude");
-            ImGui::TableSetupColumn("Longitude");
-            ImGui::TableSetupColumn("Azimuth");
-            ImGui::TableSetupColumn("Elevation");
-            ImGui::TableSetupColumn("RA");
-            ImGui::TableSetupColumn("Dec");
-            ImGui::TableSetupColumn("Timestamp");
+            ImGui::TableSetupColumn("TLE Line 1");
+            ImGui::TableSetupColumn("TLE Line 2");
 
             ImGui::TableHeadersRow();
 
@@ -193,19 +159,9 @@ void renderSatelliteDataImGui() {
                 ImGui::TableNextColumn();
                 ImGui::Text("%d", sat.transactionscount);
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", sat.satlatitude);
+                ImGui::Text("%s", sat.tleLine1.c_str());
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", sat.satlongitude);
-                ImGui::TableNextColumn();
-                ImGui::Text("%.2f", sat.azimuth);
-                ImGui::TableNextColumn();
-                ImGui::Text("%.2f", sat.elevation);
-                ImGui::TableNextColumn();
-                ImGui::Text("%.2f", sat.ra);
-                ImGui::TableNextColumn();
-                ImGui::Text("%.2f", sat.dec);
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", sat.timestamp);
+                ImGui::Text("%s", sat.tleLine2.c_str());
             }
             ImGui::EndTable();
         }
