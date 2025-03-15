@@ -12,20 +12,120 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-using std::string;
-
-// Wierzcho³ki trójk¹ta (wspó³rzêdne OpenGL, przed transformacj¹)
-const glm::vec3 triangleVertices[3] = {
-    { 0.0f,  0.5f, 0.0f},  // Górny wierzcho³ek
-    {-0.5f, -0.5f, 0.0f},  // Lewy dolny
-    { 0.5f, -0.5f, 0.0f}   // Prawy dolny
+struct Satellite {
+    int satid;
+    std::string satname;
+    int transactionscount;
+    float satlatitude;
+    float satlongitude;
+    float azimuth;
+    float elevation;
+    float ra;
+    float dec;
+    int timestamp;
 };
 
-// Globalna zmienna do œledzenia k¹ta obrotu
+std::vector<Satellite> satellites;
+bool showSatelliteWindow = false;
+
 float rotationAngle = 0.0f;
 float rotationSpeed = 0.01f;
 
-// Funkcja sprawdzaj¹ca, czy punkt (px, py) znajduje siê w trójk¹cie (po transformacji)
+CURL* curl;
+CURLcode res;
+std::string satData;
+
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t totalSize = size * nmemb;
+    std::string* satData = reinterpret_cast<std::string*>(userp);
+    satData->append((char*)contents, totalSize);
+    return totalSize;
+}
+
+void fetchDataFromAPI(const std::string& apiKey) {
+    std::string SAT_ID = "56144";
+    std::string LAT = "52.2298";
+    std::string LON = "21.0122";
+    std::string ALT = "100";
+    std::string url = "https://api.n2yo.com/rest/v1/satellite/positions/" + SAT_ID + "/" + LAT + "/" + LON + "/" + ALT + "/1/?apiKey=" + apiKey;
+
+    CURL* curl;
+    CURLcode res;
+    std::string satData;
+
+    curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &satData);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        }
+        else {
+            try {
+                nlohmann::json parsedData = nlohmann::json::parse(satData);
+
+                if (parsedData.contains("positions") && parsedData["positions"].is_array()) {
+                    auto positions = parsedData["positions"];
+                    for (auto& position : positions) {
+                        Satellite satellite;
+
+                        if (position.contains("satid") && position["satid"].is_number()) {
+                            satellite.satid = position["satid"];
+                        }
+                        if (position.contains("satname") && position["satname"].is_string()) {
+                            satellite.satname = position["satname"];
+                        }
+                        if (position.contains("transactionscount") && position["transactionscount"].is_number()) {
+                            satellite.transactionscount = position["transactionscount"];
+                        }
+                        if (position.contains("satlatitude") && position["satlatitude"].is_number()) {
+                            satellite.satlatitude = position["satlatitude"];
+                        }
+                        if (position.contains("satlongitude") && position["satlongitude"].is_number()) {
+                            satellite.satlongitude = position["satlongitude"];
+                        }
+                        if (position.contains("azimuth") && position["azimuth"].is_number()) {
+                            satellite.azimuth = position["azimuth"];
+                        }
+                        if (position.contains("elevation") && position["elevation"].is_number()) {
+                            satellite.elevation = position["elevation"];
+                        }
+                        if (position.contains("ra") && position["ra"].is_number()) {
+                            satellite.ra = position["ra"];
+                        }
+                        if (position.contains("dec") && position["dec"].is_number()) {
+                            satellite.dec = position["dec"];
+                        }
+                        if (position.contains("timestamp") && position["timestamp"].is_number()) {
+                            satellite.timestamp = position["timestamp"];
+                        }
+
+                        satellites.push_back(satellite);
+                    }
+                }
+                else {
+                    std::cerr << "No position data found!" << std::endl;
+                }
+            }
+            catch (const nlohmann::json::exception& e) {
+                std::cerr << "JSON parsing error: " << e.what() << std::endl;
+            }
+        }
+        curl_easy_cleanup(curl);
+    }
+}
+
+const glm::vec3 triangleVertices[3] = {
+    { 0.0f,  0.5f, 0.0f},
+    {-0.5f, -0.5f, 0.0f},
+    { 0.5f, -0.5f, 0.0f}
+};
+
 bool isPointInTriangle(float px, float py, glm::mat4 transform) {
     glm::vec4 v1 = transform * glm::vec4(triangleVertices[0], 1.0f);
     glm::vec4 v2 = transform * glm::vec4(triangleVertices[1], 1.0f);
@@ -44,7 +144,6 @@ bool isPointInTriangle(float px, float py, glm::mat4 transform) {
     return s > 0 && t > 0 && (s + t) < 2 * sign * A;
 }
 
-// Funkcja obs³ugi klikniêcia myszk¹
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double xpos, ypos;
@@ -59,9 +158,71 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 
         if (isPointInTriangle(x, y, transform)) {
-            std::cout << "Klikniêto w trójk¹t! Wspó³rzêdne OpenGL: (" << x << ", " << y << ")\n";
+            showSatelliteWindow = true;
         }
     }
+}
+
+void renderSatelliteDataImGui() {
+    ImGui::Begin("Satellite Data");
+
+    if (!satellites.empty()) {
+        ImGui::Text("Satellite Information");
+        ImGui::Separator();
+
+        if (ImGui::BeginTable("SatelliteDataTable", 10, ImGuiTableFlags_Borders)) {
+            ImGui::TableSetupColumn("SatID");
+            ImGui::TableSetupColumn("Name");
+            ImGui::TableSetupColumn("Transaction Count");
+            ImGui::TableSetupColumn("Latitude");
+            ImGui::TableSetupColumn("Longitude");
+            ImGui::TableSetupColumn("Azimuth");
+            ImGui::TableSetupColumn("Elevation");
+            ImGui::TableSetupColumn("RA");
+            ImGui::TableSetupColumn("Dec");
+            ImGui::TableSetupColumn("Timestamp");
+
+            ImGui::TableHeadersRow();
+
+            for (const auto& sat : satellites) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", sat.satid);
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", sat.satname.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", sat.transactionscount);
+                ImGui::TableNextColumn();
+                ImGui::Text("%.2f", sat.satlatitude);
+                ImGui::TableNextColumn();
+                ImGui::Text("%.2f", sat.satlongitude);
+                ImGui::TableNextColumn();
+                ImGui::Text("%.2f", sat.azimuth);
+                ImGui::TableNextColumn();
+                ImGui::Text("%.2f", sat.elevation);
+                ImGui::TableNextColumn();
+                ImGui::Text("%.2f", sat.ra);
+                ImGui::TableNextColumn();
+                ImGui::Text("%.2f", sat.dec);
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", sat.timestamp);
+            }
+            ImGui::EndTable();
+        }
+    }
+    else {
+        ImGui::Text("No satellite data available.");
+    }
+
+    if (ImGui::Button("Close")) {
+        showSatelliteWindow = false;
+    }
+
+    ImGui::End();
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
 }
 
 int main() {
@@ -70,9 +231,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Kliknij w trojkat", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "StarlinkTracker", NULL, NULL);
     if (!window) {
-        std::cerr << "B³¹d tworzenia okna GLFW!" << std::endl;
+        std::cerr << "Error creating GLFW!" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -80,11 +241,24 @@ int main() {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "B³¹d inicjalizacji GLAD!" << std::endl;
+        std::cerr << "Error initialising GLAD!" << std::endl;
         return -1;
     }
 
     glViewport(0, 0, 800, 600);
+
+    std::string API_KEY;
+    std::fstream file("apiKey.txt");
+    if (file.is_open()) {
+        std::getline(file, API_KEY);
+        file.close();
+    }
+    else {
+        std::cerr << "Failed to open apiKey.txt" << std::endl;
+        return -1;
+    }
+
+    fetchDataFromAPI(API_KEY);
 
     float vertices[] = {
          0.0f,  0.5f, 0.0f,
@@ -140,6 +314,8 @@ int main() {
 
     int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
     // Init ImGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -165,9 +341,9 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("My Window");
-        ImGui::Text("Hello");
-        ImGui::End();
+        if (showSatelliteWindow) {
+            renderSatelliteDataImGui();
+        }
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -176,117 +352,16 @@ int main() {
         glfwPollEvents();
     }
 
+    // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(shaderProgram);
+
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
-
-//int main() {  
-//   // opengl test  
-//   if (!glfwInit())  
-//   {  
-//       std::cout << "Failed to initialize GLFW" << std::endl;  
-//   }  
-//   else  
-//   {  
-//       std::cout << "GLFW initialized" << std::endl;  
-//   }  
-//
-//   // libcurl test  
-//   CURL* curl;  
-//   CURLcode res;  
-//
-//   curl_global_init(CURL_GLOBAL_DEFAULT);  
-//
-//   curl_version_info_data* version_info = curl_version_info(CURLVERSION_NOW);
-//   if (version_info == nullptr) {
-//	   std::cerr << "Failed to get curl version info" << std::endl;
-//	   return 1;
-//   }
-//   if (version_info->version == nullptr) {
-//	   std::cerr << "Failed to get curl version" << std::endl;
-//	   return 1;
-//   }
-//   if (version_info->ssl_version == nullptr) {
-//	   std::cerr << "Failed to get curl ssl version" << std::endl;
-//	   //return 1;
-//   }
-//   else
-//   {
-//       std::cout << "SSL version: " << version_info->ssl_version << std::endl;
-//   }
-//   std::cout << "libcurl version: " << version_info->version << std::endl;
-//
-//
-//   // Creating a handle for the connection  
-//   curl = curl_easy_init();  
-//   if (curl) {  
-//       // Setting the URL to download  
-//       std::string API_KEY;  
-//       std::fstream file("apiKey.txt");  
-//       if (file.is_open()) {  
-//           std::getline(file, API_KEY);  
-//           file.close();  
-//       }  
-//       else {  
-//           std::cerr << "Failed to open apiKey.txt" << std::endl;  
-//       }  
-//       std::cout << "API Key apiKey: " << API_KEY << std::endl;  
-//
-//       string SAT_ID = "56144";  
-//       string LAT = "52.2298";  
-//       string LON = "21.0122";  
-//       string ALT = "100";  
-//       string url = "https://api.n2yo.com/rest/v1/satellite/positions/" + SAT_ID + "/" + LAT + "/" + LON + "/" + ALT + "/1/?apiKey=" + API_KEY;  
-//       std::cout << url.c_str() << std::endl;  
-//       //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); //better curl logs
-//       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-//       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());  
-//
-//
-//       // Set the User-Agent to avoid being blocked by some servers  
-//       curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");  
-//
-//       // Performing the request  
-//       res = curl_easy_perform(curl);  
-//
-//       // Checking for errors  
-//       if (res != CURLE_OK) {  
-//           std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;  
-//       }  
-//       else {  
-//           std::cout << "\nStarlink data fetched!" << std::endl;  
-//       }  
-//
-//       // Releasing the handle  
-//       curl_easy_cleanup(curl);  
-//   }  
-//
-//   // Releasing global resources  
-//   curl_global_cleanup();  
-//
-//   // nlohmann::json test  
-//   nlohmann::json j = {  
-//       {"pi", 3.141},  
-//       {"happy", true},  
-//       {"name", "niels"},  
-//       {"nothing", nullptr},  
-//       {"answer", {  
-//           {"everything", 42}  
-//       }},  
-//       {"list", {1, 0, 2}},  
-//       {"object", {  
-//           {"currency", "usd"},  
-//           {"value", 42.99}  
-//       }}  
-//   };  
-//   std::cout << j["pi"] << std::endl;  
-//
-//   return 0;  
-//}
