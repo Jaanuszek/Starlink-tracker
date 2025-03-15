@@ -11,6 +11,9 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include "include/VBO.h"
+#include "include/VAO.h"
+#include "include/Shader.h"
 
 struct Satellite {
     int satid;
@@ -222,100 +225,81 @@ int main() {
          0.5f, -0.5f, 0.0f
     };
 
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+	std::vector<VertexAttrib> attribs = {
+		{0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0}
+	};
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    {
+        VAO vao;
+        vao.bind();
+        VBO vbo(vertices, sizeof(vertices), attribs);
+        vbo.setAttribPointers();
+        vbo.unbind();
+        vao.unbind();
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+        const char* vertexShaderSource = R"(
+            #version 330 core
+            layout (location = 0) in vec3 aPos;
+            uniform mat4 transform;
+            void main() {
+                gl_Position = transform * vec4(aPos, 1.0);
+            }
+        )";
 
-    const char* vertexShaderSource = R"(
-        #version 330 core
-        layout (location = 0) in vec3 aPos;
-        uniform mat4 transform;
-        void main() {
-            gl_Position = transform * vec4(aPos, 1.0);
-        }
-    )";
+        const char* fragmentShaderSource = R"(
+            #version 330 core
+            out vec4 FragColor;
+            void main() {
+                FragColor = vec4(1.0, 0.5, 0.2, 1.0);
+            }
+        )";
 
-    const char* fragmentShaderSource = R"(
-        #version 330 core
-        out vec4 FragColor;
-        void main() {
-            FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-        }
-    )";
+		Shader shader(vertexShaderSource, fragmentShaderSource);
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+        // Init ImGUI
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
 
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+        while (!glfwWindowShouldClose(window)) {
+            rotationAngle += rotationSpeed;
+            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-    int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+			shader.useShaderProgram();
+			shader.setUniformMat4fv("transform", transform);
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+            vao.bind();
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+            vao.unbind();
 
-    // Init ImGUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-    while (!glfwWindowShouldClose(window)) {
-        rotationAngle += rotationSpeed;
-        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+            if (showSatelliteWindow) {
+                renderSatelliteDataImGui();
+            }
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glUseProgram(shaderProgram);
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        if (showSatelliteWindow) {
-            renderSatelliteDataImGui();
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        // Cleanup
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
     }
-
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
 
     glfwDestroyWindow(window);
     glfwTerminate();

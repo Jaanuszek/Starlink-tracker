@@ -171,6 +171,9 @@
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\VAO.cpp" />
+    <ClCompile Include="src\VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h" />
@@ -194,6 +197,10 @@
     <ClInclude Include="external\imgui\imstb_rectpack.h" />
     <ClInclude Include="external\imgui\imstb_textedit.h" />
     <ClInclude Include="external\imgui\imstb_truetype.h" />
+    <ClInclude Include="include\EBO.h" />
+    <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="include\VAO.h" />
+    <ClInclude Include="include\VBO.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x64\libcurl.lib" />
