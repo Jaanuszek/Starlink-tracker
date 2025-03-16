@@ -195,9 +195,11 @@ int main() {
     std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
     std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
     std::string satData;
-
-    fetchApi satelliteDataAPI;
-	satelliteDataAPI.fetchDataFromAPI(url, satData);
+    {
+		// zrobilem scope zeby sie destruktor wywolal i zamknal curla
+        fetchApi satelliteDataAPI;
+        satelliteDataAPI.fetchDataFromAPI(url, satData);
+    }
 	parseJSONSattelite(satData);
 
     //fetchDataFromAPI(API_KEY);
