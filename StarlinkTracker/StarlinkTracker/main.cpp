@@ -14,6 +14,7 @@
 #include "include/VBO.h"
 #include "include/VAO.h"
 #include "include/Shader.h"
+#include "include/fetchApi.h"
 
 struct Satellite {
     int satid;
@@ -29,74 +30,42 @@ bool showSatelliteWindow = false;
 float rotationAngle = 0.0f;
 float rotationSpeed = 0.01f;
 
-CURL* curl;
-CURLcode res;
+void parseJSONSattelite(const std::string& satData)
+{
+    try {
+        nlohmann::json parsedData = nlohmann::json::parse(satData);
 
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    size_t totalSize = size * nmemb;
+        if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
+            const auto& info = parsedData["info"];
+            Satellite satellite;
+            satellite.satid = info["satid"].get<int>();
+            satellite.satname = info["satname"].get<std::string>();
+            satellite.transactionscount = info["transactionscount"].get<int>();
 
-    if (!userp) {
-        std::cerr << "[ERROR] No user pointer provided!" << std::endl;
-        return 0;
-    }
+            if (parsedData["tle"].is_string()) {
+                std::string tle = parsedData["tle"].get<std::string>();
 
-	std::string* satData = static_cast<std::string*>(userp);
-	*satData += std::string(static_cast<char *>(contents), totalSize);
-    return totalSize;
-}
+                size_t splitPos = tle.find("\r\n");
+                if (splitPos != std::string::npos) {
+                    satellite.tleLine1 = tle.substr(0, splitPos);
+                    satellite.tleLine2 = tle.substr(splitPos + 2);
+                }
+				std::cout << satellite.satname << std::endl;
+				std::cout << satellite.tleLine1 << std::endl;
+				std::cout << satellite.tleLine2 << std::endl;
 
-void fetchDataFromAPI(const std::string& apiKey) {
-    std::string satData;
-    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
-    std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + apiKey;
-
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &satData);
-
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                satellites.push_back(satellite);
+            }
+            else {
+                std::cerr << "TLE field is missing or not a string!" << std::endl;
+            }
         }
         else {
-            try {
-                nlohmann::json parsedData = nlohmann::json::parse(satData);
-
-                if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
-                    const auto& info = parsedData["info"];
-                    Satellite satellite;
-                    satellite.satid = info["satid"].get<int>();
-                    satellite.satname = info["satname"].get<std::string>();
-                    satellite.transactionscount = info["transactionscount"].get<int>();
-
-                    if (parsedData["tle"].is_string()) {
-                        std::string tle = parsedData["tle"].get<std::string>();
-
-                        size_t splitPos = tle.find("\r\n");
-                        if (splitPos != std::string::npos) {
-                            satellite.tleLine1 = tle.substr(0, splitPos);
-                            satellite.tleLine2 = tle.substr(splitPos + 2);
-                        }
-
-                        satellites.push_back(satellite);
-                    }
-                    else {
-                        std::cerr << "TLE field is missing or not a string!" << std::endl;
-                    }
-                }
-                else {
-                    std::cerr << "Required fields are missing in the response!" << std::endl;
-                }
-            }
-            catch (const nlohmann::json::exception& e) {
-                std::cerr << "JSON parsing error: " << e.what() << std::endl;
-            }
+            std::cerr << "Required fields are missing in the response!" << std::endl;
         }
-        curl_easy_cleanup(curl);
+    }
+    catch (const nlohmann::json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
     }
 }
 
@@ -223,7 +192,15 @@ int main() {
         return -1;
     }
 
-    fetchDataFromAPI(API_KEY);
+    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
+    std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
+    std::string satData;
+
+    fetchApi satelliteDataAPI;
+	satelliteDataAPI.fetchDataFromAPI(url, satData);
+	parseJSONSattelite(satData);
+
+    //fetchDataFromAPI(API_KEY);
 
     float vertices[] = {
          0.0f,  0.5f, 0.0f,

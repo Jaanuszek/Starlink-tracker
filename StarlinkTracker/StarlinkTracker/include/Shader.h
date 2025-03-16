@@ -22,12 +22,12 @@ class Shader
 private:
 	unsigned int shaderProgramID;
 	const char* shaderFilePath;
-public:
-	Shader(const char* pathToShader);
-	~Shader();
 	ShaderProgramSource parseShader(const char* pathToShader);
 	unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
 	unsigned int CompileShader(GLenum shaderType, const std::string& shader);
+public:
+	Shader(const char* pathToShader);
+	~Shader();
 	void useShaderProgram();
 	void setUniformMat4fv(const std::string& name, const glm::mat4& matrix);
 };
