@@ -2,26 +2,32 @@
 #define SHADER_H
 
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+struct ShaderProgramSource
+{
+	std::string vertexShaderSource;
+	std::string fragmentShaderSource;
+};
+
 class Shader
 {
 private:
-	unsigned int vertexShaderID;
-	unsigned int fragmentShaderID;
 	unsigned int shaderProgramID;
+	const char* shaderFilePath;
 public:
-	// Shaders from variables
-	Shader(const char* vertexShaderSource, const char* fragmentShaderSource);
-	// Shaders from files
-	//Shader(const char* pathToVS, const char* pathToFS);
+	Shader(const char* pathToShader);
 	~Shader();
-	//void CreateShader();
-	//void CompileShader();
+	ShaderProgramSource parseShader(const char* pathToShader);
+	unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
+	unsigned int CompileShader(GLenum shaderType, const std::string& shader);
 	void useShaderProgram();
 	void setUniformMat4fv(const std::string& name, const glm::mat4& matrix);
 };

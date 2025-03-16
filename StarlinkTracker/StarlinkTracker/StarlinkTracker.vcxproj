@@ -206,6 +206,9 @@
     <Library Include="external\curl\lib\x64\libcurl.lib" />
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\basicShader.shader" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

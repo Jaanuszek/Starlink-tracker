@@ -31,16 +31,22 @@ float rotationSpeed = 0.01f;
 
 CURL* curl;
 CURLcode res;
-std::string satData;
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
     size_t totalSize = size * nmemb;
-    std::string* satData = reinterpret_cast<std::string*>(userp);
-    satData->append((char*)contents, totalSize);
+
+    if (!userp) {
+        std::cerr << "[ERROR] No user pointer provided!" << std::endl;
+        return 0;
+    }
+
+	std::string* satData = static_cast<std::string*>(userp);
+	*satData += std::string(static_cast<char *>(contents), totalSize);
     return totalSize;
 }
 
 void fetchDataFromAPI(const std::string& apiKey) {
+    std::string satData;
     std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
     std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + apiKey;
 
@@ -109,13 +115,13 @@ bool isPointInTriangle(float px, float py, glm::mat4 transform) {
     float x2 = v2.x, y2 = v2.y;
     float x3 = v3.x, y3 = v3.y;
 
-    float A = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
-    float sign = A < 0 ? -1.0f : 1.0f;
+    float area = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
+    float sign = area < 0 ? -1.0f : 1.0f;
 
     float s = sign * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
     float t = sign * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
 
-    return s > 0 && t > 0 && (s + t) < 2 * sign * A;
+    return s > 0 && t > 0 && (s + t) < 2 * sign * area;
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -230,31 +236,15 @@ int main() {
 	};
 
     {
+		// Bind VAO -> Bind VBO -> Set attrib pointers -> Unbind VBO ->Unbind VAO
         VAO vao;
         vao.bind();
         VBO vbo(vertices, sizeof(vertices), attribs);
         vbo.setAttribPointers();
         vbo.unbind();
         vao.unbind();
-
-        const char* vertexShaderSource = R"(
-            #version 330 core
-            layout (location = 0) in vec3 aPos;
-            uniform mat4 transform;
-            void main() {
-                gl_Position = transform * vec4(aPos, 1.0);
-            }
-        )";
-
-        const char* fragmentShaderSource = R"(
-            #version 330 core
-            out vec4 FragColor;
-            void main() {
-                FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-            }
-        )";
-
-		Shader shader(vertexShaderSource, fragmentShaderSource);
+        // Set shader from a file
+		Shader shader("shaders/basicShader.shader");
 
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -273,7 +263,9 @@ int main() {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+			// Use shader program (use this specific shader)
 			shader.useShaderProgram();
+			// Set uniform matrix in Shader
 			shader.setUniformMat4fv("transform", transform);
 
             vao.bind();
