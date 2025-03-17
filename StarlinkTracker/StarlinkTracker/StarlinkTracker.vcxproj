@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -169,6 +169,22 @@
     <ClCompile Include="external\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="external\libsgp4\CoordGeodetic.cc" />
+    <ClCompile Include="external\libsgp4\CoordTopocentric.cc" />
+    <ClCompile Include="external\libsgp4\DateTime.cc" />
+    <ClCompile Include="external\libsgp4\DecayedException.cc" />
+    <ClCompile Include="external\libsgp4\Eci.cc" />
+    <ClCompile Include="external\libsgp4\Globals.cc" />
+    <ClCompile Include="external\libsgp4\Observer.cc" />
+    <ClCompile Include="external\libsgp4\OrbitalElements.cc" />
+    <ClCompile Include="external\libsgp4\SatelliteException.cc" />
+    <ClCompile Include="external\libsgp4\SGP4.cc" />
+    <ClCompile Include="external\libsgp4\SolarPosition.cc" />
+    <ClCompile Include="external\libsgp4\TimeSpan.cc" />
+    <ClCompile Include="external\libsgp4\Tle.cc" />
+    <ClCompile Include="external\libsgp4\TleException.cc" />
+    <ClCompile Include="external\libsgp4\Util.cc" />
+    <ClCompile Include="external\libsgp4\Vector.cc" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\fetchApi.cpp" />
@@ -198,6 +214,22 @@
     <ClInclude Include="external\imgui\imstb_rectpack.h" />
     <ClInclude Include="external\imgui\imstb_textedit.h" />
     <ClInclude Include="external\imgui\imstb_truetype.h" />
+    <ClInclude Include="external\libsgp4\CoordGeodetic.h" />
+    <ClInclude Include="external\libsgp4\CoordTopocentric.h" />
+    <ClInclude Include="external\libsgp4\DateTime.h" />
+    <ClInclude Include="external\libsgp4\DecayedException.h" />
+    <ClInclude Include="external\libsgp4\Eci.h" />
+    <ClInclude Include="external\libsgp4\Globals.h" />
+    <ClInclude Include="external\libsgp4\Observer.h" />
+    <ClInclude Include="external\libsgp4\OrbitalElements.h" />
+    <ClInclude Include="external\libsgp4\SatelliteException.h" />
+    <ClInclude Include="external\libsgp4\SGP4.h" />
+    <ClInclude Include="external\libsgp4\SolarPosition.h" />
+    <ClInclude Include="external\libsgp4\TimeSpan.h" />
+    <ClInclude Include="external\libsgp4\Tle.h" />
+    <ClInclude Include="external\libsgp4\TleException.h" />
+    <ClInclude Include="external\libsgp4\Util.h" />
+    <ClInclude Include="external\libsgp4\Vector.h" />
     <ClInclude Include="include\EBO.h" />
     <ClInclude Include="include\fetchApi.h" />
     <ClInclude Include="include\Shader.h" />

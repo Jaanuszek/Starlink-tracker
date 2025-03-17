@@ -15,6 +15,10 @@
 #include "include/VAO.h"
 #include "include/Shader.h"
 #include "include/fetchApi.h"
+#include "Tle.h"
+#include "DateTime.h"
+#include "Vector.h"
+#include "SGP4.h"
 
 struct Satellite {
     int satid;
@@ -53,6 +57,15 @@ void parseJSONSattelite(const std::string& satData)
 				std::cout << satellite.satname << std::endl;
 				std::cout << satellite.tleLine1 << std::endl;
 				std::cout << satellite.tleLine2 << std::endl;
+
+                libsgp4::SGP4 sgp4(libsgp4::Tle(satellite.satname, satellite.tleLine1, satellite.tleLine2));
+                libsgp4::DateTime dt(2025, 3, 17, 20, 0, 0);
+                libsgp4::Eci eci = sgp4.FindPosition(dt);
+                libsgp4::Vector position = eci.Position();
+                libsgp4::Vector velocity = eci.Velocity();
+
+                std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
+                std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
 
                 satellites.push_back(satellite);
             }
