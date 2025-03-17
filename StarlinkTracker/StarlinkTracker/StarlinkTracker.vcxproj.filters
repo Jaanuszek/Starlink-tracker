@@ -51,6 +51,18 @@
     <ClCompile Include="external\imgui\imgui_widgets.cpp">
       <Filter>Pliki źródłowe\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VAO.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VBO.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fetchApi.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h">
@@ -116,9 +128,27 @@
     <ClInclude Include="external\imgui\imstb_truetype.h">
       <Filter>Pliki nagłówkowe\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="include\EBO.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Shader.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\VAO.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\VBO.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\fetchApi.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
     <Library Include="external\curl\lib\x64\libcurl.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\basicShader.shader" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,10 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include "include/VBO.h"
+#include "include/VAO.h"
+#include "include/Shader.h"
+#include "include/fetchApi.h"
 
 struct Satellite {
     int satid;
@@ -26,68 +30,42 @@ bool showSatelliteWindow = false;
 float rotationAngle = 0.0f;
 float rotationSpeed = 0.01f;
 
-CURL* curl;
-CURLcode res;
-std::string satData;
+void parseJSONSattelite(const std::string& satData)
+{
+    try {
+        nlohmann::json parsedData = nlohmann::json::parse(satData);
 
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    size_t totalSize = size * nmemb;
-    std::string* satData = reinterpret_cast<std::string*>(userp);
-    satData->append((char*)contents, totalSize);
-    return totalSize;
-}
+        if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
+            const auto& info = parsedData["info"];
+            Satellite satellite;
+            satellite.satid = info["satid"].get<int>();
+            satellite.satname = info["satname"].get<std::string>();
+            satellite.transactionscount = info["transactionscount"].get<int>();
 
-void fetchDataFromAPI(const std::string& apiKey) {
-    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
-    std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + apiKey;
+            if (parsedData["tle"].is_string()) {
+                std::string tle = parsedData["tle"].get<std::string>();
 
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &satData);
+                size_t splitPos = tle.find("\r\n");
+                if (splitPos != std::string::npos) {
+                    satellite.tleLine1 = tle.substr(0, splitPos);
+                    satellite.tleLine2 = tle.substr(splitPos + 2);
+                }
+				std::cout << satellite.satname << std::endl;
+				std::cout << satellite.tleLine1 << std::endl;
+				std::cout << satellite.tleLine2 << std::endl;
 
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                satellites.push_back(satellite);
+            }
+            else {
+                std::cerr << "TLE field is missing or not a string!" << std::endl;
+            }
         }
         else {
-            try {
-                nlohmann::json parsedData = nlohmann::json::parse(satData);
-
-                if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
-                    const auto& info = parsedData["info"];
-                    Satellite satellite;
-                    satellite.satid = info["satid"].get<int>();
-                    satellite.satname = info["satname"].get<std::string>();
-                    satellite.transactionscount = info["transactionscount"].get<int>();
-
-                    if (parsedData["tle"].is_string()) {
-                        std::string tle = parsedData["tle"].get<std::string>();
-
-                        size_t splitPos = tle.find("\r\n");
-                        if (splitPos != std::string::npos) {
-                            satellite.tleLine1 = tle.substr(0, splitPos);
-                            satellite.tleLine2 = tle.substr(splitPos + 2);
-                        }
-
-                        satellites.push_back(satellite);
-                    }
-                    else {
-                        std::cerr << "TLE field is missing or not a string!" << std::endl;
-                    }
-                }
-                else {
-                    std::cerr << "Required fields are missing in the response!" << std::endl;
-                }
-            }
-            catch (const nlohmann::json::exception& e) {
-                std::cerr << "JSON parsing error: " << e.what() << std::endl;
-            }
+            std::cerr << "Required fields are missing in the response!" << std::endl;
         }
-        curl_easy_cleanup(curl);
+    }
+    catch (const nlohmann::json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
     }
 }
 
@@ -106,13 +84,13 @@ bool isPointInTriangle(float px, float py, glm::mat4 transform) {
     float x2 = v2.x, y2 = v2.y;
     float x3 = v3.x, y3 = v3.y;
 
-    float A = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
-    float sign = A < 0 ? -1.0f : 1.0f;
+    float area = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
+    float sign = area < 0 ? -1.0f : 1.0f;
 
     float s = sign * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
     float t = sign * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
 
-    return s > 0 && t > 0 && (s + t) < 2 * sign * A;
+    return s > 0 && t > 0 && (s + t) < 2 * sign * area;
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -214,7 +192,17 @@ int main() {
         return -1;
     }
 
-    fetchDataFromAPI(API_KEY);
+    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
+    std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
+    std::string satData;
+    {
+		// zrobilem scope zeby sie destruktor wywolal i zamknal curla
+        fetchApi satelliteDataAPI;
+        satelliteDataAPI.fetchDataFromAPI(url, satData);
+    }
+	parseJSONSattelite(satData);
+
+    //fetchDataFromAPI(API_KEY);
 
     float vertices[] = {
          0.0f,  0.5f, 0.0f,
@@ -222,100 +210,67 @@ int main() {
          0.5f, -0.5f, 0.0f
     };
 
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+	std::vector<VertexAttrib> attribs = {
+		{0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0}
+	};
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    {
+		// Bind VAO -> Bind VBO -> Set attrib pointers -> Unbind VBO ->Unbind VAO
+        VAO vao;
+        vao.bind();
+        VBO vbo(vertices, sizeof(vertices), attribs);
+        vbo.setAttribPointers();
+        vbo.unbind();
+        vao.unbind();
+        // Set shader from a file
+		Shader shader("shaders/basicShader.shader");
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    const char* vertexShaderSource = R"(
-        #version 330 core
-        layout (location = 0) in vec3 aPos;
-        uniform mat4 transform;
-        void main() {
-            gl_Position = transform * vec4(aPos, 1.0);
-        }
-    )";
+        // Init ImGUI
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
 
-    const char* fragmentShaderSource = R"(
-        #version 330 core
-        out vec4 FragColor;
-        void main() {
-            FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-        }
-    )";
+        while (!glfwWindowShouldClose(window)) {
+            rotationAngle += rotationSpeed;
+            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+			// Use shader program (use this specific shader)
+			shader.useShaderProgram();
+			// Set uniform matrix in Shader
+			shader.setUniformMat4fv("transform", transform);
 
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+            vao.bind();
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+            vao.unbind();
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-    int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+            if (showSatelliteWindow) {
+                renderSatelliteDataImGui();
+            }
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    // Init ImGUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    while (!glfwWindowShouldClose(window)) {
-        rotationAngle += rotationSpeed;
-        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(shaderProgram);
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        if (showSatelliteWindow) {
-            renderSatelliteDataImGui();
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        // Cleanup
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
     }
-
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
 
     glfwDestroyWindow(window);
     glfwTerminate();
