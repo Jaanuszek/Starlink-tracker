@@ -32,9 +32,10 @@ public:
 	VBO(float* vertices, GLsizeiptr size, const std::vector<VertexAttrib>& attribs);
 	VBO(const std::vector<Vertex>& vertices);
 	~VBO();
-	void bind();
-	void unbind();
-	void setAttribPointers();
+	void Bind();
+	void Unbind();
+	void AddVertexStructAttribs();
+	void SetAttribPointers();
 };
 
 #endif // !VBO_H

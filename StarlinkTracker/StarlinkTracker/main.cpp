@@ -11,10 +11,10 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include "include/VBO.h"
-#include "include/VAO.h"
 #include "include/Shader.h"
 #include "include/fetchApi.h"
+#include "include/Mesh.h"
+#include "include/Models/Sphere.h"
 #include "Tle.h"
 #include "DateTime.h"
 #include "Vector.h"
@@ -84,10 +84,12 @@ void parseJSONSattelite(const std::string& satData)
 }
 
 std::vector<Vertex> ver = {
-    {{0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
+    {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
+	{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
     {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
     {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}}
 };
+std::vector<unsigned int> ind = { 0, 1, 2 ,3 , 1, 2 };
 
 bool isPointInTriangle(float px, float py, glm::mat4 transform) {
     glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
@@ -107,6 +109,34 @@ bool isPointInTriangle(float px, float py, glm::mat4 transform) {
     return s > 0 && t > 0 && (s + t) < 2 * sign * area;
 }
 
+
+bool isPointInRectangle(float px, float py, glm::mat4 transform)
+{
+	glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
+	glm::vec4 v2 = transform * glm::vec4(ver[1].position, 1.0f);
+	glm::vec4 v3 = transform * glm::vec4(ver[2].position, 1.0f);
+	glm::vec4 v4 = transform * glm::vec4(ver[3].position, 1.0f);
+
+	float x1 = v1.x, y1 = v1.y;
+	float x2 = v2.x, y2 = v2.y;
+	float x3 = v3.x, y3 = v3.y;
+	float x4 = v4.x, y4 = v4.y;
+
+	float area1 = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
+	float sign1 = area1 < 0 ? -1.0f : 1.0f;
+
+	float s1 = sign1 * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
+	float t1 = sign1 * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
+
+	float area2 = 0.5f * (-y3 * x4 + y1 * (-x3 + x4) + x1 * (y3 - y4) + x3 * y4);
+	float sign2 = area2 < 0 ? -1.0f : 1.0f;
+
+	float s2 = sign2 * (y1 * x4 - x1 * y4 + (y4 - y1) * px + (x1 - x4) * py);
+	float t2 = sign2 * (x1 * y3 - y1 * x3 + (y1 - y3) * px + (x3 - x1) * py);
+
+	return (s1 > 0 && t1 > 0 && (s1 + t1) < 2 * sign1 * area1) || (s2 > 0 && t2 > 0 && (s2 + t2) < 2 * sign2 * area2);
+}
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double xpos, ypos;
@@ -120,7 +150,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 
-        if (isPointInTriangle(x, y, transform)) {
+        if (isPointInRectangle(x, y, transform)) {
             showSatelliteWindow = true;
         }
     }
@@ -192,7 +222,7 @@ int main() {
         std::cerr << "[ERROR] initialising GLAD!" << std::endl;
         return -1;
     }
-
+	glEnable(GL_DEPTH_TEST);
     glViewport(0, 0, 800, 600);
 
     std::string API_KEY;
@@ -217,12 +247,11 @@ int main() {
 	parseJSONSattelite(satData);
 
     {
-		// Bind VAO -> Bind VBO -> Set attrib pointers -> Unbind VBO ->Unbind VAO
-        VAO vao;
-        vao.bind();
-		VBO vbo(ver);
-        vbo.unbind();
-        vao.unbind();
+        Mesh mesh(ver, ind);
+        Sphere sphere(100, 100, 0.5f);
+		std::vector<Vertex> SphereVertices = sphere.getVertices();
+		std::vector<unsigned int> SphereIndices = sphere.getIndices();
+        Mesh SphereMesh(SphereVertices, SphereIndices);
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
 
@@ -237,8 +266,9 @@ int main() {
         ImGui_ImplOpenGL3_Init("#version 330");
 
         while (!glfwWindowShouldClose(window)) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
-            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(1.0f, 0.0f, 1.0f));
 
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -248,9 +278,9 @@ int main() {
 			// Set uniform matrix in Shader
 			shader.setUniformMat4fv("transform", transform);
 
-            vao.bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            vao.unbind();
+            SphereMesh.Draw();
+            //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
+			//mesh.Draw();
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
