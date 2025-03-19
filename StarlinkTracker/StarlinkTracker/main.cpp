@@ -19,6 +19,7 @@
 #include "DateTime.h"
 #include "Vector.h"
 #include "SGP4.h"
+#include <assimp/Importer.hpp>
 
 struct Satellite {
     int satid;
@@ -82,16 +83,16 @@ void parseJSONSattelite(const std::string& satData)
     }
 }
 
-const glm::vec3 triangleVertices[3] = {
-    { 0.0f,  0.5f, 0.0f},
-    {-0.5f, -0.5f, 0.0f},
-    { 0.5f, -0.5f, 0.0f}
+std::vector<Vertex> ver = {
+    {{0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
+    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}}
 };
 
 bool isPointInTriangle(float px, float py, glm::mat4 transform) {
-    glm::vec4 v1 = transform * glm::vec4(triangleVertices[0], 1.0f);
-    glm::vec4 v2 = transform * glm::vec4(triangleVertices[1], 1.0f);
-    glm::vec4 v3 = transform * glm::vec4(triangleVertices[2], 1.0f);
+    glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
+    glm::vec4 v2 = transform * glm::vec4(ver[1].position, 1.0f);
+    glm::vec4 v3 = transform * glm::vec4(ver[2].position, 1.0f);
 
     float x1 = v1.x, y1 = v1.y;
     float x2 = v2.x, y2 = v2.y;
@@ -180,7 +181,7 @@ int main() {
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "StarlinkTracker", NULL, NULL);
     if (!window) {
-        std::cerr << "Error creating GLFW!" << std::endl;
+        std::cerr << "[ERROR] creating GLFW!" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -188,7 +189,7 @@ int main() {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Error initialising GLAD!" << std::endl;
+        std::cerr << "[ERROR] initialising GLAD!" << std::endl;
         return -1;
     }
 
@@ -215,24 +216,11 @@ int main() {
     }
 	parseJSONSattelite(satData);
 
-    //fetchDataFromAPI(API_KEY);
-
-    float vertices[] = {
-         0.0f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f
-    };
-
-	std::vector<VertexAttrib> attribs = {
-		{0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0}
-	};
-
     {
 		// Bind VAO -> Bind VBO -> Set attrib pointers -> Unbind VBO ->Unbind VAO
         VAO vao;
         vao.bind();
-        VBO vbo(vertices, sizeof(vertices), attribs);
-        vbo.setAttribPointers();
+		VBO vbo(ver);
         vbo.unbind();
         vao.unbind();
         // Set shader from a file
@@ -271,7 +259,7 @@ int main() {
             if (showSatelliteWindow) {
                 renderSatelliteDataImGui();
             }
-
+              
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
