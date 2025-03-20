@@ -12,8 +12,8 @@ private:
 public:
 	VAO();
 	~VAO();
-	void bind();
-	void unbind();
+	void Bind();
+	void Unbind();
 };
 
 #endif // !VAO_H

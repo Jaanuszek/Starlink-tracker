@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <glm/glm.hpp>
 
 struct VertexAttrib {
 	GLuint index;
@@ -15,6 +16,13 @@ struct VertexAttrib {
 	const void* pointer;
 };
 
+struct Vertex
+{
+	glm::vec3 position;
+	glm::vec3 normal;
+	glm::vec2 texPos;
+};
+
 class VBO
 {
 private:
@@ -22,10 +30,12 @@ private:
 	std::vector<VertexAttrib> attributes;
 public:
 	VBO(float* vertices, GLsizeiptr size, const std::vector<VertexAttrib>& attribs);
+	VBO(const std::vector<Vertex>& vertices);
 	~VBO();
-	void bind();
-	void unbind();
-	void setAttribPointers();
+	void Bind();
+	void Unbind();
+	void AddVertexStructAttribs();
+	void SetAttribPointers();
 };
 
 #endif // !VBO_H

@@ -29,6 +29,7 @@ public:
 	Shader(const char* pathToShader);
 	~Shader();
 	void useShaderProgram();
+	void setUniform1f(const std::string& name, float value);
 	void setUniformMat4fv(const std::string& name, const glm::mat4& matrix);
 };
 
