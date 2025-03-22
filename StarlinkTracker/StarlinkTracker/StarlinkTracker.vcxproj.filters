@@ -120,7 +120,7 @@
     <ClCompile Include="src\Models\Sphere.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="external\stb_image\stb.cpp">
+    <ClCompile Include="external\stb\stb.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="src\Texture.cpp">
@@ -260,7 +260,7 @@
     <ClInclude Include="include\Models\Sphere.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="external\stb_image\stb_image.h">
+    <ClInclude Include="external\stb\stb_image.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="include\Texture.h">

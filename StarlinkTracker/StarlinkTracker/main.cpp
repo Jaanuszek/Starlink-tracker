@@ -20,7 +20,6 @@
 #include "Vector.h"
 #include "SGP4.h"
 #include <assimp/Importer.hpp>
-#include "stb_image/stb_image.h"
 #include "include/Texture.h"
 
 struct Satellite {
@@ -224,6 +223,7 @@ int main() {
         std::cerr << "[ERROR] initialising GLAD!" << std::endl;
         return -1;
     }
+    glfwSwapInterval(1);
 	glEnable(GL_DEPTH_TEST);
     glViewport(0, 0, 800, 600);
 
@@ -254,7 +254,6 @@ int main() {
 		std::vector<Vertex> SphereVertices = sphere.getVertices();
 		std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
-		//Texture(".\\assets\\earthMap.png");
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
 

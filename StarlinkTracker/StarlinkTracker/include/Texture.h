@@ -5,7 +5,7 @@
 #include <fstream>
 #include <glad/glad.h>
 #include <string>
-#include "stb_image/stb_image.h"
+#include "stb/stb_image.h"
 
 class Texture {
 private:
