@@ -11,7 +11,6 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
 	vbo.AddVertexStructAttribs();
 	vbo.SetAttribPointers();
 	vbo.Unbind();
-	texture.Unbind();
 	vao.Unbind();
 
 	texture.Bind(0);

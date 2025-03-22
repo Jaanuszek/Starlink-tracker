@@ -253,7 +253,6 @@
     <None Include="shaders\basicShader.shader" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\Earth.png" />
     <Image Include="assets\earthMap.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
