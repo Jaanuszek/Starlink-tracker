@@ -185,6 +185,7 @@
     <ClCompile Include="external\libsgp4\TleException.cc" />
     <ClCompile Include="external\libsgp4\Util.cc" />
     <ClCompile Include="external\libsgp4\Vector.cc" />
+    <ClCompile Include="external\stb\stb.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\EBO.cpp" />
@@ -192,6 +193,7 @@
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Models\Sphere.cpp" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\VAO.cpp" />
     <ClCompile Include="src\VBO.cpp" />
   </ItemGroup>
@@ -233,11 +235,13 @@
     <ClInclude Include="external\libsgp4\TleException.h" />
     <ClInclude Include="external\libsgp4\Util.h" />
     <ClInclude Include="external\libsgp4\Vector.h" />
+    <ClInclude Include="external\stb\stb_image.h" />
     <ClInclude Include="include\EBO.h" />
     <ClInclude Include="include\fetchApi.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\Models\Sphere.h" />
     <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\VAO.h" />
     <ClInclude Include="include\VBO.h" />
   </ItemGroup>
@@ -247,6 +251,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicShader.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\earthMap.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
