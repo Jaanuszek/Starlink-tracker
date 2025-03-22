@@ -120,6 +120,12 @@
     <ClCompile Include="src\Models\Sphere.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="external\stb_image\stb.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h">
@@ -254,6 +260,12 @@
     <ClInclude Include="include\Models\Sphere.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="external\stb_image\stb_image.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Texture.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
@@ -261,5 +273,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicShader.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\Earth.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+    <Image Include="assets\earthMap.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
   </ItemGroup>
 </Project>

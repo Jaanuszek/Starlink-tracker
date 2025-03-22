@@ -20,6 +20,8 @@
 #include "Vector.h"
 #include "SGP4.h"
 #include <assimp/Importer.hpp>
+#include "stb_image/stb_image.h"
+#include "include/Texture.h"
 
 struct Satellite {
     int satid;
@@ -33,7 +35,7 @@ std::vector<Satellite> satellites;
 bool showSatelliteWindow = false;
 
 float rotationAngle = 0.0f;
-float rotationSpeed = 0.01f;
+float rotationSpeed = 0.05f;
 
 void parseJSONSattelite(const std::string& satData)
 {
@@ -148,7 +150,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         float x = (xpos / width) * 2.0f - 1.0f;
         float y = 1.0f - (ypos / height) * 2.0f;
 
-        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 
         if (isPointInRectangle(x, y, transform)) {
             showSatelliteWindow = true;
@@ -247,11 +249,12 @@ int main() {
 	parseJSONSattelite(satData);
 
     {
-        Mesh mesh(ver, ind);
+        Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
 		std::vector<Vertex> SphereVertices = sphere.getVertices();
 		std::vector<unsigned int> SphereIndices = sphere.getIndices();
-        Mesh SphereMesh(SphereVertices, SphereIndices);
+        Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
+		//Texture(".\\assets\\earthMap.png");
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
 
@@ -268,7 +271,7 @@ int main() {
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
-            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAngle), glm::vec3(1.0f, 0.0f, 1.0f));
+            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -277,6 +280,7 @@ int main() {
 			shader.useShaderProgram();
 			// Set uniform matrix in Shader
 			shader.setUniformMat4fv("transform", transform);
+			shader.setUniform1i("ourTexture", 0);
 
             SphereMesh.Draw();
             //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole

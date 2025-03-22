@@ -30,6 +30,10 @@ void Sphere::CreateSphere(int sectorCount, int stackCount, float radius)
 			vertex.position = glm::vec3(x, y, z);
 			vertex.normal = glm::vec3(x, y, z);
 			vertex.texPos = glm::vec2(U, V);
+			//std::cout << "U" << U << std::endl;
+			//std::cout << "V" << V << std::endl;
+			//std::cout << "texPos.x" << vertex.texPos.x << std::endl;
+			//std::cout << "texPos.y" << vertex.texPos.y << std::endl;
 			sphereVertices.push_back(vertex);
 		}
 	}
