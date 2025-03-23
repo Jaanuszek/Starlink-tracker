@@ -126,6 +126,9 @@
     <ClCompile Include="src\Texture.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="src\JSONParser.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h">
@@ -266,6 +269,9 @@
     <ClInclude Include="include\Texture.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="include\JSONParser.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
@@ -273,11 +279,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicShader.shader" />
+    <None Include="assets\geoJSON\countriesGeoJSON.json" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\Earth.png">
-      <Filter>Pliki zasobów</Filter>
-    </Image>
     <Image Include="assets\earthMap.png">
       <Filter>Pliki zasobów</Filter>
     </Image>
