@@ -6,6 +6,7 @@ Window::Window() {
 	xChange = 0.0f;
 	yChange = 0.0f;
 	mousedFirstMoved = true;
+	rightMouseButtonPressed = false;
 
 	for (size_t i = 0; i < 1024; i++) {
 		keys[i] = 0;
@@ -18,6 +19,7 @@ Window::Window(GLint windowWidth, GLint windowHeight) {
 	xChange = 0.0f;
 	yChange = 0.0f;
 	mousedFirstMoved = true;
+	rightMouseButtonPressed = false;
 
 	for (size_t i = 0; i < 1024; i++) {
 		keys[i] = 0;
@@ -62,7 +64,6 @@ int Window::Initialise() {
 
 	// Handle Key + Mouse Input
 	createCallbacks();
-	glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cerr << "[ERROR] initialising GLAD!" << std::endl;
@@ -89,6 +90,16 @@ int Window::Initialise() {
 void Window::createCallbacks() {
 	glfwSetKeyCallback(mainWindow, handleKeys);
 	glfwSetCursorPosCallback(mainWindow, handleMouse);
+	glfwSetMouseButtonCallback(mainWindow, handleMouseButton);
+}
+
+void Window::toggleCursorVisibility() {
+	if (rightMouseButtonPressed) {
+		glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	else {
+		glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
 }
 
 void Window::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -126,6 +137,19 @@ void Window::handleMouse(GLFWwindow* window, double xPos, double yPos) {
 
 	theWindow->lastX = xPos;
 	theWindow->lastY = yPos;
+}
+
+void Window::handleMouseButton(GLFWwindow* window, int button, int action, int mods) {
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS) {
+			theWindow->rightMouseButtonPressed = true;
+		}
+		else if (action == GLFW_RELEASE) {
+			theWindow->rightMouseButtonPressed = false;
+		}
+	}
 }
 
 GLfloat Window::getXChange() {

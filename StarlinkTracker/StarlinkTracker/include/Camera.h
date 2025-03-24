@@ -13,7 +13,7 @@ public:
 	~Camera();
 
 	void keyControl(bool* keys, GLfloat deltaTime);
-	void mouseControl(GLfloat xChange, GLfloat yChange);
+	void mouseControl(GLfloat xChange, GLfloat yChange, bool rightMouseButtonPressed);
 	glm::mat4 calculateViewMatrix();
 
 private:

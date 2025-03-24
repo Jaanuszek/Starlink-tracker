@@ -25,6 +25,8 @@ public:
 	GLfloat getXChange();
 	GLfloat getYChange();
 	void SwapBuffers() { glfwSwapBuffers(mainWindow); };
+	bool getIsRightMouseButtonPressed() { return rightMouseButtonPressed; }
+	void toggleCursorVisibility();
 
 private:
 	GLFWwindow* mainWindow;
@@ -39,11 +41,13 @@ private:
 	GLfloat xChange;
 	GLfloat yChange;
 	bool mousedFirstMoved;
+	bool rightMouseButtonPressed;
 
 	void createCallbacks();
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	static void handleKeys(GLFWwindow* window, int key, int code, int action, int mode);
 	static void handleMouse(GLFWwindow* window, double xPos, double yPos);
+	static void handleMouseButton(GLFWwindow* window, int button, int action, int mods);
 };
 
 #endif

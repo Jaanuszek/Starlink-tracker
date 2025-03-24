@@ -48,7 +48,11 @@ void Camera::keyControl(bool* keys, GLfloat deltaTime) {
 	}
 }
 
-void Camera::mouseControl(GLfloat xChange, GLfloat yChange) {
+void Camera::mouseControl(GLfloat xChange, GLfloat yChange, bool rightMouseButtonPressed) {
+	if (!rightMouseButtonPressed) {
+		return;
+	}
+
 	xChange *= turnSpeed;
 	yChange *= turnSpeed;
 

@@ -139,25 +139,6 @@ bool isPointInRectangle(float px, float py, glm::mat4 transform)
 	return (s1 > 0 && t1 > 0 && (s1 + t1) < 2 * sign1 * area1) || (s2 > 0 && t2 > 0 && (s2 + t2) < 2 * sign2 * area2);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
-
-        float x = (xpos / width) * 2.0f - 1.0f;
-        float y = 1.0f - (ypos / height) * 2.0f;
-
-        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-
-        if (isPointInRectangle(x, y, transform)) {
-            showSatelliteWindow = true;
-        }
-    }
-}
-
 void renderSatelliteDataImGui() {
     ImGui::Begin("Satellite Data");
     
@@ -245,7 +226,9 @@ int main() {
             lastTime = now;
 
             camera.keyControl(mainWindow.getKeys(), deltaTime);
-            camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+            camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange(), mainWindow.getIsRightMouseButtonPressed());
+
+            mainWindow.toggleCursorVisibility();
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
