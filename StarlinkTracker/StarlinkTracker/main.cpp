@@ -1,25 +1,23 @@
-#include <iostream>  
+#include <iostream>
 #include <fstream>  
-#include <string>  
-#include <curl/curl.h>  
-#include <glad/glad.h>  
-#include <GLFW/glfw3.h>  
-#include <json.hpp>  
+#include <string>
+#include <curl/curl.h>
+#include <json.hpp>
+#include <assimp/Importer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include "include/Shader.h"
-#include "include/fetchApi.h"
-#include "include/Mesh.h"
-#include "include/Models/Sphere.h"
+
 #include "Tle.h"
 #include "DateTime.h"
 #include "Vector.h"
 #include "SGP4.h"
-#include <assimp/Importer.hpp>
+#include "include/Window.h"
+#include "include/Camera.h"
+#include "include/Shader.h"
+#include "include/fetchApi.h"
+#include "include/Mesh.h"
+#include "include/Models/Sphere.h"
 #include "include/Texture.h"
 
 struct Satellite {
@@ -35,6 +33,9 @@ bool showSatelliteWindow = false;
 
 float rotationAngle = 0.0f;
 float rotationSpeed = 0.05f;
+
+GLfloat deltaTime = 0.0f;
+GLfloat lastTime = 0.0f;
 
 void parseJSONSattelite(const std::string& satData)
 {
@@ -200,32 +201,9 @@ void renderSatelliteDataImGui() {
     ImGui::End();
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
 int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(800, 600, "StarlinkTracker", NULL, NULL);
-    if (!window) {
-        std::cerr << "[ERROR] creating GLFW!" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "[ERROR] initialising GLAD!" << std::endl;
-        return -1;
-    }
-    glfwSwapInterval(1);
-	glEnable(GL_DEPTH_TEST);
-    glViewport(0, 0, 800, 600);
+    Window mainWindow = Window(800, 600);
+    mainWindow.Initialise();
 
     std::string API_KEY;
     std::fstream file("apiKey.txt");
@@ -249,6 +227,8 @@ int main() {
 	parseJSONSattelite(satData);
 
     {
+        Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
+
         Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
 		std::vector<Vertex> SphereVertices = sphere.getVertices();
@@ -257,17 +237,16 @@ int main() {
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
 
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), 0.1f, 100.f);
 
-        // Init ImGUI
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        ImGui::StyleColorsDark();
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 330");
+        while (!mainWindow.getShouldClose()) {
+            GLfloat now = glfwGetTime();
+            deltaTime = now - lastTime;
+            lastTime = now;
 
-        while (!glfwWindowShouldClose(window)) {
+            camera.keyControl(mainWindow.getKeys(), deltaTime);
+            camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
             glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -279,6 +258,8 @@ int main() {
 			shader.useShaderProgram();
 			// Set uniform matrix in Shader
 			shader.setUniformMat4fv("transform", transform);
+            shader.setUniformMat4fv("projection", projection);
+            shader.setUniformMat4fv("view", camera.calculateViewMatrix());
 			shader.setUniform1i("ourTexture", 0);
 
             SphereMesh.Draw();
@@ -296,7 +277,7 @@ int main() {
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            glfwSwapBuffers(window);
+            mainWindow.SwapBuffers();
             glfwPollEvents();
         }
 
@@ -306,7 +287,5 @@ int main() {
         ImGui::DestroyContext();
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
     return 0;
 }
