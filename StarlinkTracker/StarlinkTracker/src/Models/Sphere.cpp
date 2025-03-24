@@ -12,7 +12,7 @@ Sphere::~Sphere()
 
 void Sphere::CreateSphere(int sectorCount, int stackCount, float radius) 
 {
-	const float PI = 3.1415926f;
+	const float PI = 3.14159265358979323846f;
 	sphereVertices.resize((sectorCount + 1) * (stackCount + 1));
 	sphereIndices.resize(sectorCount * stackCount * 6);
 

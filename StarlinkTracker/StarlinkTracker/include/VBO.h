@@ -6,6 +6,9 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <glm/glm.hpp>
+#include "JSONParser.h"
+
+struct VertexPosOnly; // Forward declaration
 
 struct VertexAttrib {
 	GLuint index;
@@ -31,6 +34,7 @@ private:
 public:
 	VBO(float* vertices, GLsizeiptr size, const std::vector<VertexAttrib>& attribs);
 	VBO(const std::vector<Vertex>& vertices);
+	VBO(const std::vector<VertexPosOnly>& vertices);
 	~VBO();
 	void Bind();
 	void Unbind();

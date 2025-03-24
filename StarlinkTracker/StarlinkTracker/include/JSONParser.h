@@ -11,6 +11,8 @@
 #include "glm/glm.hpp"
 #include "VBO.h" // to have access to Vertex struct
 
+#define M_PI 3.14159265358979323846
+
 struct Satellite {
     int satid;
     std::string satname;
@@ -52,12 +54,15 @@ enum class primitiveType {
 class JSONParser
 {
 private:
+	std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>> countries;
 	primitiveType getPrimitiveType(const nlohmann::json& parsedData, unsigned int index);
+	glm::vec3 changeCoordsToSphere(float lon, float lat, float radius);
 	std::vector<VertexPosOnly>& getVertex(const nlohmann::json& parsedData, unsigned int index, primitiveType primType);
 public:
 	JSONParser();
 	~JSONParser();
 	static void ParseJSONSattelite(const std::string& satData, std::vector<Satellite>& satellites);
     void ParseGeoJSON(const char* pathToGeoJSON);
+	const std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>>& getCountries() { return countries; }
 };
 #endif

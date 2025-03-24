@@ -36,6 +36,18 @@ primitiveType JSONParser::getPrimitiveType(const nlohmann::json& parsedData, uns
 		return primitiveType::NONE;
 	}
 }
+glm::vec3 JSONParser::changeCoordsToSphere(float lon, float lat, float radius) {
+	//float lon = vertex.position.x;
+	//float lat = vertex.position.y;
+	float theta = lon * M_PI / 180.0f;
+	float phi = lat * M_PI / 180.0f;
+    float x = radius * cos(phi) * cos(theta);
+    float y = radius * sin(phi);
+    float z = radius * cos(phi) * sin(theta);
+
+
+    return { x, y, z };
+}
 
 std::vector<VertexPosOnly>& JSONParser::getVertex(const nlohmann::json& parsedData, unsigned int index, primitiveType primType)
 {
@@ -53,7 +65,7 @@ std::vector<VertexPosOnly>& JSONParser::getVertex(const nlohmann::json& parsedDa
                     {
                         if (arr2.is_array() && arr2.size() >= 2) {
                             vertex.polygonIndex = polyIndex;
-                            vertex.position = glm::vec3(arr2[0], arr2[1], 0.0f);
+							vertex.position = changeCoordsToSphere(arr2[1], arr2[0], 0.5f); //???
                             countriesVertices.push_back(vertex);
                         }
                     }
@@ -150,7 +162,7 @@ void JSONParser::ParseJSONSattelite(const std::string& satData, std::vector<Sate
 
 void JSONParser::ParseGeoJSON(const char* pathToGeoJSON)
 {
-    std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>> countries;
+    //std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>> countries;
     std::ifstream GeoJSONfile(pathToGeoJSON);
 	if (!GeoJSONfile.is_open())
 	{
@@ -209,18 +221,18 @@ void JSONParser::ParseGeoJSON(const char* pathToGeoJSON)
                     i++;
 				}
             }
-			for (auto& [key, value] : countries)
-			{
-				if (key.name == "Angola")
-				{
-					std::cout << "Country: " << key.name << " Continent: " << key.continent << std::endl;
-					std::cout << "Primitive type: " << static_cast<int>(value.first) << std::endl;
-					for (auto& ver : value.second)
-					{
-						std::cout << "Polygon index: " << ver.polygonIndex << " Position: " << ver.position.x << " " << ver.position.y << std::endl;
-					}
-				}
-			}
+			//for (auto& [key, value] : countries)
+			//{
+			//	if (key.name == "Poland")
+			//	{
+			//		std::cout << "Country: " << key.name << " Continent: " << key.continent << std::endl;
+			//		std::cout << "Primitive type: " << static_cast<int>(value.first) << std::endl;
+			//		for (auto& ver : value.second)
+			//		{
+			//			std::cout << "Polygon index: " << ver.polygonIndex << " Position: " << ver.position.x << " " << ver.position.y << std::endl;
+			//		}
+			//	}
+			//}
 		}
 		catch (const nlohmann::json::exception& e)
 		{

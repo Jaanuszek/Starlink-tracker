@@ -280,6 +280,7 @@
   <ItemGroup>
     <None Include="shaders\basicShader.shader" />
     <None Include="assets\geoJSON\countriesGeoJSON.json" />
+    <None Include="shaders\countriesBorderShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\earthMap.png">

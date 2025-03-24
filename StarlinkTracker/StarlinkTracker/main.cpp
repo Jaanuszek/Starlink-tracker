@@ -21,6 +21,9 @@
 #include <assimp/Importer.hpp>
 
 
+int width = 800;
+int height = 600;
+
 std::vector<Satellite> satellites;
 bool showSatelliteWindow = false;
 
@@ -153,7 +156,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "StarlinkTracker", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "StarlinkTracker", NULL, NULL);
     if (!window) {
         std::cerr << "[ERROR] creating GLFW!" << std::endl;
         glfwTerminate();
@@ -181,7 +184,7 @@ int main() {
         return -1;
     }
 
-    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
+    std::string SAT_ID = "63329";  // For example, ISS (International Space Station)
     std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
     std::string satData;
     {
@@ -198,8 +201,37 @@ int main() {
 		std::vector<Vertex> SphereVertices = sphere.getVertices();
 		std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
+
+
+        // Drawing countries on map
+
+		std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>> countriesMap = jsonParser.getCountries();
+
+		std::vector<VertexPosOnly> PolandVertices;
+
+        for (auto& i : countriesMap) {
+            //if (i.first.name == "Poland") {
+            //    for (const auto& vertex : i.second.second) {
+            //        PolandVertices.push_back(vertex);
+            //    }
+            //    PolandVertices.push_back(i.second.second[0]);
+            //}
+			if (i.first.name == "Poland")
+			{
+				std::vector<VertexPosOnly> tempVertices = i.second.second;
+				tempVertices.push_back(tempVertices[0]);
+				PolandVertices.insert(PolandVertices.end(), tempVertices.begin(), tempVertices.end());
+			}
+ /*           for (const auto& vertex : i.second.second) {
+                 PolandVertices.push_back(vertex);
+             }*/
+        }
+
+		Mesh PolandMesh(PolandVertices);
+
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
+		Shader shaderBorders("shaders/countriesBorderShader.shader");
 
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -215,17 +247,30 @@ int main() {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
             glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
 
-			// Use shader program (use this specific shader)
-			shader.useShaderProgram();
-			// Set uniform matrix in Shader
-			shader.setUniformMat4fv("transform", transform);
-			shader.setUniform1i("ourTexture", 0);
+			 //Use shader program (use this specific shader)
+			//shader.useShaderProgram();
+			//////// Set uniform matrix in Shader
+			//shader.setUniformMat4fv("transform", transform);
+			//shader.setUniform1i("ourTexture", 0);
+   //         SphereMesh.Draw(GL_TRIANGLES);
 
-            SphereMesh.Draw();
+
+			glm::mat4 bordersProjection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+			glm::mat4 bordersModel = glm::mat4(1.0f);
+			bordersModel = glm::rotate(bordersModel, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 bordersView = glm::mat4(1.0f);
+			bordersView = glm::translate(bordersView, glm::vec3(0.0f, 0.0f, -1.0f));
+			bordersView = glm::rotate(bordersView, glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+			shaderBorders.useShaderProgram();
+			//shaderBorders.setUniformMat4fv("transform", transform);
+			shaderBorders.setUniformMat4fv("projection", bordersProjection);
+			shaderBorders.setUniformMat4fv("model", bordersModel);
+			shaderBorders.setUniformMat4fv("view", bordersView);
+			shaderBorders.setUniform1i("ourTexture", 0);
+
+			PolandMesh.DrawWithoutEBO(GL_LINE_STRIP, PolandVertices.size());
             //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
 			//mesh.Draw();
 

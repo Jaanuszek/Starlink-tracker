@@ -16,6 +16,15 @@ VBO::VBO(const std::vector<Vertex>& vertices) {
 	//AddVertexStructAttribs();
 }
 
+VBO::VBO(const std::vector<VertexPosOnly>& vertices) {
+	glGenBuffers(1, &ID);
+	glBindBuffer(GL_ARRAY_BUFFER, ID);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), vertices.data(), GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosOnly), (void*)offsetof(VertexPosOnly, position));
+}
+
 VBO::~VBO() {
 	std::cout << "[DEBUG] VBO deleted" << std::endl;
 	glDeleteBuffers(1, &ID);
