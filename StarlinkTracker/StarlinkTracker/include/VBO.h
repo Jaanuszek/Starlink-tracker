@@ -40,6 +40,7 @@ public:
 	void Unbind();
 	void AddVertexStructAttribs();
 	void SetAttribPointers();
+	void SetAttribPointers(const std::vector<VertexAttrib>& attribs);
 };
 
 #endif // !VBO_H

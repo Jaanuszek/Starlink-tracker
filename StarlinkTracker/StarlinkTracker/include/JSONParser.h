@@ -35,9 +35,8 @@ struct Country {
 };
 
 struct VertexPosOnly {
-	unsigned int polygonIndex;
 	glm::vec3 position;
-	VertexPosOnly() : polygonIndex(0), position(glm::vec3(0.0f)) {}
+	//VertexPosOnly() : position(glm::vec3(0.0f)) {}
 };
 
 enum class primitiveType {
@@ -51,18 +50,23 @@ enum class primitiveType {
 	NONE
 };
 
+struct PrimitiveData{
+	primitiveType type;
+	std::map<unsigned int, std::vector<VertexPosOnly>> polygons;
+};
+
 class JSONParser
 {
 private:
-	std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>> countries;
+	std::map<Country, PrimitiveData> countriesMap;
 	primitiveType getPrimitiveType(const nlohmann::json& parsedData, unsigned int index);
 	glm::vec3 changeCoordsToSphere(float lon, float lat, float radius);
-	std::vector<VertexPosOnly>& getVertex(const nlohmann::json& parsedData, unsigned int index, primitiveType primType);
+	std::map<unsigned int, std::vector<VertexPosOnly>> getVertex(const nlohmann::json& parsedData, unsigned int index, primitiveType primType);
 public:
 	JSONParser();
 	~JSONParser();
 	static void ParseJSONSattelite(const std::string& satData, std::vector<Satellite>& satellites);
     void ParseGeoJSON(const char* pathToGeoJSON);
-	const std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>>& getCountries() { return countries; }
+	const std::map<Country, PrimitiveData>& getCountries() { return countriesMap; }
 };
 #endif

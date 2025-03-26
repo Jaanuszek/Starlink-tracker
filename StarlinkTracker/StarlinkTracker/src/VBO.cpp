@@ -22,7 +22,7 @@ VBO::VBO(const std::vector<VertexPosOnly>& vertices) {
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), vertices.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosOnly), (void*)offsetof(VertexPosOnly, position));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosOnly), (void*)0);
 }
 
 VBO::~VBO() {
@@ -49,6 +49,13 @@ void VBO::AddVertexStructAttribs() {
 
 void VBO::SetAttribPointers() {
 	for (const auto& attribute : attributes) {
+		glEnableVertexAttribArray(attribute.index);
+		glVertexAttribPointer(attribute.index, attribute.size, attribute.type, attribute.normalized, attribute.stride, attribute.pointer);
+	}
+}
+
+void VBO::SetAttribPointers(const std::vector<VertexAttrib>& attribs) {
+	for (const auto& attribute : attribs) {
 		glEnableVertexAttribArray(attribute.index);
 		glVertexAttribPointer(attribute.index, attribute.size, attribute.type, attribute.normalized, attribute.stride, attribute.pointer);
 	}

@@ -204,28 +204,32 @@ int main() {
 
 
         // Drawing countries on map
-
-		std::map<Country, std::pair<primitiveType, std::vector<VertexPosOnly>>> countriesMap = jsonParser.getCountries();
+		std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
 
 		std::vector<VertexPosOnly> PolandVertices;
 
         for (auto& i : countriesMap) {
-            //if (i.first.name == "Poland") {
-            //    for (const auto& vertex : i.second.second) {
-            //        PolandVertices.push_back(vertex);
-            //    }
-            //    PolandVertices.push_back(i.second.second[0]);
-            //}
-			if (i.first.name == "Poland")
-			{
-				std::vector<VertexPosOnly> tempVertices = i.second.second;
-				tempVertices.push_back(tempVertices[0]);
-				PolandVertices.insert(PolandVertices.end(), tempVertices.begin(), tempVertices.end());
-			}
- /*           for (const auto& vertex : i.second.second) {
-                 PolandVertices.push_back(vertex);
-             }*/
+			//if (i.first.name == "Poland")
+			//{
+				//std::vector<VertexPosOnly> tempVertices = i.second.polygons[0];
+				//for (auto& j : tempVertices)
+				//{
+				//	PolandVertices.push_back(j);
+				//}
+			//}
+            unsigned int index = 0;
+            std::vector<VertexPosOnly> tempVertices;
+            while (i.second.polygons[index].size() > 0)
+            {
+				tempVertices = i.second.polygons[index];
+                index++;
+            }
+            for (auto& j : tempVertices)
+            {
+                PolandVertices.push_back(j);
+            }
         }
+
 
 		Mesh PolandMesh(PolandVertices);
 
@@ -245,32 +249,34 @@ int main() {
 
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
             rotationAngle += rotationSpeed;
-            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 bordersProjection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+            glm::mat4 bordersModel = glm::mat4(1.0f);
+            glm::mat4 bordersView = glm::mat4(1.0f);
+            bordersView = glm::translate(bordersView, glm::vec3(0.0f, 0.0f, -3.0f));
+            bordersView = glm::rotate(bordersView, glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-			 //Use shader program (use this specific shader)
-			//shader.useShaderProgram();
-			//////// Set uniform matrix in Shader
-			//shader.setUniformMat4fv("transform", transform);
-			//shader.setUniform1i("ourTexture", 0);
-   //         SphereMesh.Draw(GL_TRIANGLES);
+			//Use shader program (use this specific shader)
+			shader.useShaderProgram();
+			// Set uniform matrix in Shader
+            shader.setUniformMat4fv("projection", bordersProjection);
+            shader.setUniformMat4fv("model", bordersModel);
+            shader.setUniformMat4fv("view", bordersView);
+			shader.setUniform1i("ourTexture", 0);
+            SphereMesh.Draw(GL_TRIANGLES);
 
-
-			glm::mat4 bordersProjection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
-			glm::mat4 bordersModel = glm::mat4(1.0f);
-			bordersModel = glm::rotate(bordersModel, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::mat4 bordersView = glm::mat4(1.0f);
-			bordersView = glm::translate(bordersView, glm::vec3(0.0f, 0.0f, -1.0f));
-			bordersView = glm::rotate(bordersView, glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            glClear(GL_DEPTH_BUFFER_BIT);
 			shaderBorders.useShaderProgram();
-			//shaderBorders.setUniformMat4fv("transform", transform);
 			shaderBorders.setUniformMat4fv("projection", bordersProjection);
 			shaderBorders.setUniformMat4fv("model", bordersModel);
 			shaderBorders.setUniformMat4fv("view", bordersView);
 			shaderBorders.setUniform1i("ourTexture", 0);
 
-			PolandMesh.DrawWithoutEBO(GL_LINE_STRIP, PolandVertices.size());
+			PolandMesh.DrawWithoutEBO(GL_POINTS, PolandVertices.size());
+
             //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
 			//mesh.Draw();
 

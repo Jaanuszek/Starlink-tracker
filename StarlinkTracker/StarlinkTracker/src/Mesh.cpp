@@ -19,10 +19,12 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
 Mesh::Mesh(std::vector<VertexPosOnly>& vertices)
 	: vbo(vertices), ebo(), texture()
 {
+	std::vector<VertexAttrib> attribs = {
+		{0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosOnly), (void*)0}
+	};
 	vao.Bind();
 	vbo.Bind();
-	vbo.AddVertexStructAttribs();
-	vbo.SetAttribPointers();
+	vbo.SetAttribPointers(attribs);
 	vbo.Unbind();
 	vao.Unbind();
 }
