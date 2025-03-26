@@ -206,32 +206,15 @@ int main() {
         // Drawing countries on map
 		std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
 
-		std::vector<VertexPosOnly> PolandVertices;
+		std::vector<VertexPosOnly> countriesBorderVertices;
 
-        for (auto& i : countriesMap) {
-			//if (i.first.name == "Poland")
-			//{
-				//std::vector<VertexPosOnly> tempVertices = i.second.polygons[0];
-				//for (auto& j : tempVertices)
-				//{
-				//	PolandVertices.push_back(j);
-				//}
-			//}
-            unsigned int index = 0;
-            std::vector<VertexPosOnly> tempVertices;
-            while (i.second.polygons[index].size() > 0)
-            {
-				tempVertices = i.second.polygons[index];
-                index++;
-            }
-            for (auto& j : tempVertices)
-            {
-                PolandVertices.push_back(j);
+        for (auto& [country, primitiveData] : countriesMap) {
+            for (const auto& polygon : primitiveData.polygons) {
+                countriesBorderVertices.insert(countriesBorderVertices.end(), polygon.second.begin(), polygon.second.end());
             }
         }
 
-
-		Mesh PolandMesh(PolandVertices);
+		Mesh CountriesBorderMesh(countriesBorderVertices);
 
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
@@ -275,7 +258,7 @@ int main() {
 			shaderBorders.setUniformMat4fv("view", bordersView);
 			shaderBorders.setUniform1i("ourTexture", 0);
 
-			PolandMesh.DrawWithoutEBO(GL_POINTS, PolandVertices.size());
+			CountriesBorderMesh.DrawWithoutEBO(GL_POINTS, countriesBorderVertices.size());
 
             //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
 			//mesh.Draw();

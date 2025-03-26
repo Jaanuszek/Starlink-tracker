@@ -36,7 +36,6 @@ struct Country {
 
 struct VertexPosOnly {
 	glm::vec3 position;
-	//VertexPosOnly() : position(glm::vec3(0.0f)) {}
 };
 
 enum class primitiveType {
