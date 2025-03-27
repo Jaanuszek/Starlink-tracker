@@ -206,11 +206,15 @@ int main() {
         // Drawing countries on map
 		std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
 
+		std::vector<int> countriesOffsets; // offset for each country
+		std::vector<int> countriesCounts; // count of vertices for each country
 		std::vector<VertexPosOnly> countriesBorderVertices;
 
         for (auto& [country, primitiveData] : countriesMap) {
-            for (const auto& polygon : primitiveData.polygons) {
-                countriesBorderVertices.insert(countriesBorderVertices.end(), polygon.second.begin(), polygon.second.end());
+            for (const auto& [polygonIndex, polygonVertices] : primitiveData.polygons) {
+				countriesBorderVertices.insert(countriesBorderVertices.end(), polygonVertices.begin(), polygonVertices.end());
+				countriesOffsets.push_back(countriesBorderVertices.size() - polygonVertices.size());
+				countriesCounts.push_back(polygonVertices.size());
             }
         }
 
@@ -258,7 +262,7 @@ int main() {
 			shaderBorders.setUniformMat4fv("view", bordersView);
 			shaderBorders.setUniform1i("ourTexture", 0);
 
-			CountriesBorderMesh.DrawWithoutEBO(GL_POINTS, countriesBorderVertices.size());
+			CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
 
             //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
 			//mesh.Draw();

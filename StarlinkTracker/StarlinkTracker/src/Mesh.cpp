@@ -49,3 +49,10 @@ void Mesh::DrawWithoutEBO(GLenum primitiveType, unsigned int count)
 	glDrawArrays(primitiveType, 0, count);
 	vao.Unbind();
 }
+
+void Mesh::DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndices, std::vector<int> counts, GLsizei drawCount)
+{
+	vao.Bind();
+	glMultiDrawArrays(primitiveType, firstIndices.data(), counts.data(), drawCount);
+	vao.Unbind();
+}

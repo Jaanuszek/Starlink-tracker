@@ -38,7 +38,7 @@ struct VertexPosOnly {
 	glm::vec3 position;
 };
 
-enum class primitiveType {
+enum class PrimitiveType {
 	POINT,
 	LINESTRING,
 	POLYGON,
@@ -50,7 +50,7 @@ enum class primitiveType {
 };
 
 struct PrimitiveData{
-	primitiveType type;
+	PrimitiveType type;
 	std::map<unsigned int, std::vector<VertexPosOnly>> polygons;
 };
 
@@ -58,9 +58,9 @@ class JSONParser
 {
 private:
 	std::map<Country, PrimitiveData> countriesMap;
-	primitiveType getPrimitiveType(const nlohmann::json& parsedData, unsigned int index);
+	PrimitiveType getPrimitiveType(const nlohmann::json& parsedData);
 	glm::vec3 changeCoordsToSphere(float lon, float lat, float radius);
-	std::map<unsigned int, std::vector<VertexPosOnly>> getVertex(const nlohmann::json& parsedData, unsigned int index, primitiveType primType);
+	std::map<unsigned int, std::vector<VertexPosOnly>> getVertex(const nlohmann::json& parsedData, PrimitiveType primType);
 public:
 	JSONParser();
 	~JSONParser();

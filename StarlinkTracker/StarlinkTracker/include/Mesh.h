@@ -22,9 +22,12 @@ private:
 public:
 	Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
 	Mesh(std::vector<VertexPosOnly>& vertices);
+	Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
 	~Mesh();
 	void Draw(GLenum primitiveType);
 	void DrawWithoutEBO(GLenum primitiveType, unsigned int count);
+	/*void DrawFromMap(GLenum primitiveType);*/
+	void DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndices, std::vector<int> counts, GLsizei drawCount);
 };
 
 #endif

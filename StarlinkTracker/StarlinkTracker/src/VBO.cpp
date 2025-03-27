@@ -20,9 +20,6 @@ VBO::VBO(const std::vector<VertexPosOnly>& vertices) {
 	glGenBuffers(1, &ID);
 	glBindBuffer(GL_ARRAY_BUFFER, ID);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), vertices.data(), GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosOnly), (void*)0);
 }
 
 VBO::~VBO() {

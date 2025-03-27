@@ -1,39 +1,39 @@
 #include "../include/JSONParser.h"
 
-primitiveType JSONParser::getPrimitiveType(const nlohmann::json& parsedData, unsigned int index)
+PrimitiveType JSONParser::getPrimitiveType(const nlohmann::json& parsedData)
 {
 	std::string type = parsedData["type"];
 	if (type == "Point")
 	{
-		return primitiveType::POINT;
+		return PrimitiveType::POINT;
 	}
 	else if (type == "LineString")
 	{
-		return primitiveType::LINESTRING;
+		return PrimitiveType::LINESTRING;
 	}
 	else if (type == "Polygon")
 	{
-		return primitiveType::POLYGON;
+		return PrimitiveType::POLYGON;
 	}
 	else if (type == "MultiPoint")
 	{
-		return primitiveType::MULTIPOINT;
+		return PrimitiveType::MULTIPOINT;
 	}
 	else if (type == "MultiLineString")
 	{
-		return primitiveType::MULTILINESTRING;
+		return PrimitiveType::MULTILINESTRING;
 	}
 	else if (type == "MultiPolygon")
 	{
-		return primitiveType::MULTIPOLYGON;
+		return PrimitiveType::MULTIPOLYGON;
 	}
 	else if (type == "GeometryCollection")
 	{
-		return primitiveType::GEOMETRYCOLLECTION;
+		return PrimitiveType::GEOMETRYCOLLECTION;
 	}
 	else
 	{
-		return primitiveType::NONE;
+		return PrimitiveType::NONE;
 	}
 }
 glm::vec3 JSONParser::changeCoordsToSphere(float lon, float lat, float radius) {
@@ -47,69 +47,55 @@ glm::vec3 JSONParser::changeCoordsToSphere(float lon, float lat, float radius) {
     return { x, y, z };
 }
 
-std::map<unsigned int, std::vector<VertexPosOnly>> JSONParser::getVertex(const nlohmann::json& parsedData, unsigned int index, primitiveType primType)
+std::map<unsigned int, std::vector<VertexPosOnly>> JSONParser::getVertex(const nlohmann::json& parsedData, PrimitiveType primType)
 {
 	std::map<unsigned int, std::vector<VertexPosOnly>> countriesVertices;
-	std::vector<VertexPosOnly> vertices;
+
+	if (!parsedData.contains("coordinates") || !parsedData["coordinates"].is_array())
+	{
+		std::cerr << "[ERROR] Coordinates are missing or not an array!" << std::endl;
+		return countriesVertices;
+	}
+
     VertexPosOnly vertex;
-    if (parsedData.contains("coordinates") && parsedData["coordinates"].is_array())
+    int polyIndex = 0;
+
+    if (primType == PrimitiveType::POLYGON)
     {
-        int polyIndex = 0;
-        if (primType == primitiveType::POLYGON)
+        for (const auto& polygon : parsedData["coordinates"])
         {
-            for (const auto& arr : parsedData["coordinates"])
+			std::vector<VertexPosOnly> vertices;
+            for (const auto& point : polygon)
             {
-                if (arr.is_array()) {
-                    for (const auto& arr2 : arr)
-                    {
-                        if (arr2.is_array() && arr2.size() >= 2) {
-							vertex.position = changeCoordsToSphere(arr2[0], arr2[1], 0.75f);
-							vertices.push_back(vertex);
-                        }
-                    }
-                    if (countriesVertices.find(polyIndex) == countriesVertices.end())
-                    {
-                        countriesVertices[polyIndex] = vertices;
-                    }
-                    polyIndex++;
+                if (point.size() >= 2) {
+					vertex.position = changeCoordsToSphere(point[0], point[1], 0.75f);
+					vertices.push_back(vertex);
                 }
             }
+            countriesVertices[polyIndex++] = vertices;
         }
-        else if (primType == primitiveType::MULTIPOLYGON)
+    }
+    else if (primType == PrimitiveType::MULTIPOLYGON)
+    {
+        for (const auto& multipolygon : parsedData["coordinates"])
         {
-            for (const auto& arr : parsedData["coordinates"])
+            for (const auto& ring : multipolygon)
             {
-                if (arr.is_array()) {
-                    for (const auto& arr2 : arr)
-                    {
-                        if (arr2.is_array()) {
-                            for (const auto& arr3 : arr2)
-                            {
-                                if (arr3.is_array() && arr3.size() >= 2) {
-									vertex.position = changeCoordsToSphere(arr3[0], arr3[1], 0.75f);
-									vertices.push_back(vertex);
-                                }
-                            }
-							if (countriesVertices.find(polyIndex) == countriesVertices.end())
-							{
-								countriesVertices[polyIndex] = vertices;
-								polyIndex++;
-							}
-							//countriesVertices[polyIndex] = vertices;
-       //                     polyIndex++; //tu sprawdzic czy napewno to powinno byc tu
-                        }
+				std::vector<VertexPosOnly> vertices; // :)))))
+                for (const auto& point : ring)
+                {
+                    if (point.size() >= 2) {
+						vertex.position = changeCoordsToSphere(point[0], point[1], 0.75f);
+						vertices.push_back(vertex);
                     }
                 }
+				countriesVertices[polyIndex++] = vertices;
             }
-        }
-        else if (primType == primitiveType::NONE)
-        {
-            std::cerr << "[ERROR] Primitive type is NONE!" << std::endl;
         }
     }
     else
     {
-        std::cerr << "[ERROR] Coordinates are missing or not an array!" << std::endl;
+        std::cerr << "[ERROR] Primitive type is NONE!" << std::endl;
     }
 	return countriesVertices;
 }
@@ -175,68 +161,48 @@ void JSONParser::ParseGeoJSON(const char* pathToGeoJSON)
 		std::cerr << "[ERROR] Failed to open GeoJSON file! Path: " << pathToGeoJSON << std::endl;
 		return;
 	}
-    else
-    {
-        std::string parsedGeoData;
-		std::stringstream buffer;
-		buffer << GeoJSONfile.rdbuf();
-		parsedGeoData = buffer.str();
-        try
-        {
-			nlohmann::json parsedData = nlohmann::json::parse(parsedGeoData);
-            if (parsedData.contains("features"))
-            {
-                int i = 0;
-				primitiveType primitive = primitiveType::NONE;
-				std::map<unsigned int, std::vector<VertexPosOnly>> countryVertices;
-                PrimitiveData primitiveDataStruct;
-				while (parsedData["features"][i].contains("properties"))
-				{
-                    Country country;
-                    nlohmann::json propertiesData = parsedData["features"][i]["properties"];
-                    if (propertiesData.contains("NAME")) 
-					{
-						country.name = propertiesData["NAME"];
-                    }
-                    else
-                    {
-						country.name = "Unknown";
-                    }
-                    if (propertiesData.contains("CONTINENT")) 
-					{
-						country.continent = propertiesData["CONTINENT"];
-                    }
-                    else
-                    {
-						country.continent = "Unknown";
-                    }
 
-                    if (parsedData["features"][i].contains("geometry"))
-                    {
-						nlohmann::json geometryData = parsedData["features"][i]["geometry"];
-						if (geometryData.contains("type"))
-						{
-							primitive = getPrimitiveType(geometryData, i);
-						}
-						if (geometryData.contains("coordinates"))
-						{
-                            countryVertices = getVertex(geometryData, i, primitive);
-						}
-                    }
-					primitiveDataStruct.type = primitive;
-					primitiveDataStruct.polygons = countryVertices;
-					//countriesMap.emplace(country, primitiveDataStruct);
-                    if (countriesMap.find(country) == countriesMap.end())
-                    {
-                        countriesMap[country] = primitiveDataStruct;
-                    }
-                    i++;
-				}
-            }
-		}
-		catch (const nlohmann::json::exception& e)
+    std::stringstream buffer;
+    buffer << GeoJSONfile.rdbuf();
+    const std::string parsedGeoData = buffer.str();
+    try
+    {
+		const nlohmann::json parsedData = nlohmann::json::parse(parsedGeoData);
+		if (!parsedData.contains("features") || !parsedData["features"].is_array())
 		{
-			std::cerr << "JSON parsing error: " << e.what() << std::endl;
+			std::cerr << "[ERROR] No features in GeoJSON file or not an array!" << std::endl;
+			return;
 		}
-    }
+        for (const auto& feature : parsedData["features"])
+        {
+			if (!feature.contains("properties") || !feature.contains("geometry"))
+			{
+                continue;
+			}
+            Country country;
+			const auto& propertiesData = feature["properties"];
+            
+			country.name = propertiesData.value("NAME", "Unknown");
+			country.continent = propertiesData.value("CONTINENT", "Unknown");
+
+			const auto& geometryData = feature["geometry"];
+            PrimitiveType primitive = PrimitiveType::NONE;
+
+			if (geometryData.contains("type"))
+			{
+				primitive = getPrimitiveType(geometryData);
+			}
+            
+			std::map<unsigned int, std::vector<VertexPosOnly>> countryVertices;
+            if (geometryData.contains("coordinates"))
+            {
+				countryVertices = getVertex(geometryData, primitive);
+            }
+			countriesMap[country] = { primitive, countryVertices };
+        }
+	}
+	catch (const nlohmann::json::exception& e)
+	{
+		std::cerr << "[ERROR] JSON parsing error: " << e.what() << std::endl;
+	}
 }
