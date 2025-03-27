@@ -36,10 +36,7 @@ void Sphere::CreateSphere(int sectorCount, int stackCount, float radius)
 			++vertexIterator;
 		}
 	}
-	//for (auto& i : sphereVertices)
-	//{
-	//	std::cout << i.position.x << " " << i.position.y << " " << i.position.z << std::endl;
-	//}
+
 	// Indices
 	std::vector<unsigned int>::iterator indicesIterator = sphereIndices.begin();
 	for (int i = 0; i < stackCount; i++)
