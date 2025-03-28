@@ -194,7 +194,7 @@ int main() {
     }
 	JSONParser jsonParser;
 	JSONParser::ParseJSONSattelite(satData, satellites);
-	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.55f);
+	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
     {
         Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
@@ -216,7 +216,6 @@ int main() {
 				countriesCounts.push_back(polygonVertices.size());
             }
         }
-
 		Mesh CountriesBorderMesh(countriesBorderVertices);
 
         // Set shader from a file
@@ -234,11 +233,13 @@ int main() {
         ImGui_ImplOpenGL3_Init("#version 330");
 
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
-        glm::mat4 bordersModel = glm::mat4(1.0f);
-		bordersModel = glm::rotate(bordersModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 earthModel = glm::mat4(1.0f);
-		earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        earthModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); //mirror reflection
+        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // rotate 180 degrees to match the borders
+        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees to change coordinates upside down 
+        glm::mat4 bordersModel = glm::mat4(1.0f);
+		bordersModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); // mirror reflection
+		bordersModel = glm::rotate(bordersModel, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees
 
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -247,7 +248,7 @@ int main() {
             rotationAngle += rotationSpeed;
             glm::mat4 View = glm::mat4(1.0f);
             View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
-            View = glm::rotate(View, glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            View = glm::rotate(View, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
             
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -261,7 +262,9 @@ int main() {
 			shader.setUniform1i("ourTexture", 0);
             SphereMesh.Draw(GL_TRIANGLES);
 
-            glClear(GL_DEPTH_BUFFER_BIT);
+            //glClear(GL_DEPTH_BUFFER_BIT);
+			//glEnable(GL_CULL_FACE);
+			//glCullFace(GL_FRONT);
 			shaderBorders.useShaderProgram();
 			shaderBorders.setUniformMat4fv("projection", projection);
 			shaderBorders.setUniformMat4fv("model", bordersModel);
