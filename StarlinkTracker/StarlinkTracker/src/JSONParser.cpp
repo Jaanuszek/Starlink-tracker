@@ -38,16 +38,15 @@ PrimitiveType JSONParser::getPrimitiveType(const nlohmann::json& parsedData)
 }
 glm::vec3 JSONParser::changeCoordsToSphere(float lon, float lat, float radius) {
 	float theta = lon * M_PI / 180.0f;
-	float phi = lat * M_PI / 180.0f;
-    float x = radius * cos(phi) * cos(theta);
-    float y = radius * sin(phi);
-    float z = radius * cos(phi) * sin(theta);
-
+    float phi = (lat + 90.0f) * M_PI / 180.0f;
+    float x = radius * sin(phi) * cos(theta);
+    float y = radius * cos(phi);
+    float z = radius * sin(phi) * sin(theta);
 
     return { x, y, z };
 }
 
-std::map<unsigned int, std::vector<VertexPosOnly>> JSONParser::getVertex(const nlohmann::json& parsedData, PrimitiveType primType)
+std::map<unsigned int, std::vector<VertexPosOnly>> JSONParser::getVertex(const nlohmann::json& parsedData, PrimitiveType primType, float radius)
 {
 	std::map<unsigned int, std::vector<VertexPosOnly>> countriesVertices;
 
@@ -68,7 +67,7 @@ std::map<unsigned int, std::vector<VertexPosOnly>> JSONParser::getVertex(const n
             for (const auto& point : polygon)
             {
                 if (point.size() >= 2) {
-					vertex.position = changeCoordsToSphere(point[0], point[1], 0.75f);
+					vertex.position = changeCoordsToSphere(point[0], point[1], radius);
 					vertices.push_back(vertex);
                 }
             }
@@ -85,7 +84,7 @@ std::map<unsigned int, std::vector<VertexPosOnly>> JSONParser::getVertex(const n
                 for (const auto& point : ring)
                 {
                     if (point.size() >= 2) {
-						vertex.position = changeCoordsToSphere(point[0], point[1], 0.75f);
+						vertex.position = changeCoordsToSphere(point[0], point[1], radius);
 						vertices.push_back(vertex);
                     }
                 }
@@ -153,7 +152,7 @@ void JSONParser::ParseJSONSattelite(const std::string& satData, std::vector<Sate
 }
 
 
-void JSONParser::ParseGeoJSON(const char* pathToGeoJSON)
+void JSONParser::ParseGeoJSON(const char* pathToGeoJSON,float radius)
 {
     std::ifstream GeoJSONfile(pathToGeoJSON);
 	if (!GeoJSONfile.is_open())
@@ -196,7 +195,7 @@ void JSONParser::ParseGeoJSON(const char* pathToGeoJSON)
 			std::map<unsigned int, std::vector<VertexPosOnly>> countryVertices;
             if (geometryData.contains("coordinates"))
             {
-				countryVertices = getVertex(geometryData, primitive);
+				countryVertices = getVertex(geometryData, primitive, radius);
             }
 			countriesMap[country] = { primitive, countryVertices };
         }

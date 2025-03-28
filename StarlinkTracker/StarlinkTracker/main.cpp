@@ -194,14 +194,13 @@ int main() {
     }
 	JSONParser jsonParser;
 	JSONParser::ParseJSONSattelite(satData, satellites);
-	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json");
+	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.55f);
     {
         Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
 		std::vector<Vertex> SphereVertices = sphere.getVertices();
 		std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
-
 
         // Drawing countries on map
 		std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
@@ -234,32 +233,39 @@ int main() {
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 bordersModel = glm::mat4(1.0f);
+		bordersModel = glm::rotate(bordersModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 earthModel = glm::mat4(1.0f);
+		earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
             rotationAngle += rotationSpeed;
-            glm::mat4 bordersProjection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
-            glm::mat4 bordersModel = glm::mat4(1.0f);
-            glm::mat4 bordersView = glm::mat4(1.0f);
-            bordersView = glm::translate(bordersView, glm::vec3(0.0f, 0.0f, -3.0f));
-            bordersView = glm::rotate(bordersView, glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 View = glm::mat4(1.0f);
+            View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
+            View = glm::rotate(View, glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 			//Use shader program (use this specific shader)
 			shader.useShaderProgram();
+			//glm::mat4 EarthSphereView = glm::rotate(bordersView, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			// Set uniform matrix in Shader
-            shader.setUniformMat4fv("projection", bordersProjection);
-            shader.setUniformMat4fv("model", bordersModel);
-            shader.setUniformMat4fv("view", bordersView);
+            shader.setUniformMat4fv("projection", projection);
+            shader.setUniformMat4fv("model", earthModel);
+            shader.setUniformMat4fv("view", View);
 			shader.setUniform1i("ourTexture", 0);
             SphereMesh.Draw(GL_TRIANGLES);
 
             glClear(GL_DEPTH_BUFFER_BIT);
 			shaderBorders.useShaderProgram();
-			shaderBorders.setUniformMat4fv("projection", bordersProjection);
+			shaderBorders.setUniformMat4fv("projection", projection);
 			shaderBorders.setUniformMat4fv("model", bordersModel);
-			shaderBorders.setUniformMat4fv("view", bordersView);
+			shaderBorders.setUniformMat4fv("view", View);
 			shaderBorders.setUniform1i("ourTexture", 0);
 
 			CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());

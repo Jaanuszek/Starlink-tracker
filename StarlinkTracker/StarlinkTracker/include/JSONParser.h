@@ -60,12 +60,12 @@ private:
 	std::map<Country, PrimitiveData> countriesMap;
 	PrimitiveType getPrimitiveType(const nlohmann::json& parsedData);
 	glm::vec3 changeCoordsToSphere(float lon, float lat, float radius);
-	std::map<unsigned int, std::vector<VertexPosOnly>> getVertex(const nlohmann::json& parsedData, PrimitiveType primType);
+	std::map<unsigned int, std::vector<VertexPosOnly>> getVertex(const nlohmann::json& parsedData, PrimitiveType primType, float radius);
 public:
 	JSONParser();
 	~JSONParser();
 	static void ParseJSONSattelite(const std::string& satData, std::vector<Satellite>& satellites);
-    void ParseGeoJSON(const char* pathToGeoJSON);
+    void ParseGeoJSON(const char* pathToGeoJSON, float radius);
 	const std::map<Country, PrimitiveData>& getCountries() { return countriesMap; }
 };
 #endif
