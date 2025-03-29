@@ -17,7 +17,6 @@ public:
 private:
     void setupEndpoints();
 
-    bool shouldExit;
     std::thread serverThread;
     httplib::Server svr;
 };

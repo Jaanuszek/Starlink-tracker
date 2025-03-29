@@ -3,7 +3,7 @@
 
 using json = nlohmann::json;
 
-HttpServer::HttpServer() : shouldExit(false) {}
+HttpServer::HttpServer() {}
 
 HttpServer::~HttpServer() {
     stop();
@@ -121,7 +121,6 @@ void HttpServer::start() {
 }
 
 void HttpServer::stop() {
-    shouldExit = true;
     svr.stop();
     if (serverThread.joinable()) {
         serverThread.join();
