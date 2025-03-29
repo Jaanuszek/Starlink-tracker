@@ -8,10 +8,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Tle.h"
-#include "DateTime.h"
-#include "Vector.h"
-#include "SGP4.h"
+//#include "Tle.h"
+//#include "DateTime.h"
+//#include "Vector.h"
+//#include "SGP4.h"
 #include "include/Window.h"
 #include "include/Camera.h"
 #include "include/Shader.h"
@@ -19,20 +19,13 @@
 #include "include/Mesh.h"
 #include "include/Models/Sphere.h"
 #include "include/JSONParser.h"
-#include "Tle.h"
-#include "DateTime.h"
-#include "Vector.h"
-#include "SGP4.h"
+//#include "Tle.h"
+//#include "DateTime.h"
+//#include "Vector.h"
+//#include "SGP4.h"
 #include <assimp/Importer.hpp>
 #include "include/Texture.h"
 
-struct Satellite {
-    int satid;
-    std::string satname;
-    int transactionscount;
-    std::string tleLine1;
-    std::string tleLine2;
-};
 
 int width = 800;
 int height = 600;
@@ -45,54 +38,6 @@ float rotationSpeed = 0.05f;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
-
-void parseJSONSattelite(const std::string& satData)
-{
-    try {
-        nlohmann::json parsedData = nlohmann::json::parse(satData);
-
-        if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
-            const auto& info = parsedData["info"];
-            Satellite satellite;
-            satellite.satid = info["satid"].get<int>();
-            satellite.satname = info["satname"].get<std::string>();
-            satellite.transactionscount = info["transactionscount"].get<int>();
-
-            if (parsedData["tle"].is_string()) {
-                std::string tle = parsedData["tle"].get<std::string>();
-
-                size_t splitPos = tle.find("\r\n");
-                if (splitPos != std::string::npos) {
-                    satellite.tleLine1 = tle.substr(0, splitPos);
-                    satellite.tleLine2 = tle.substr(splitPos + 2);
-                }
-				std::cout << satellite.satname << std::endl;
-				std::cout << satellite.tleLine1 << std::endl;
-				std::cout << satellite.tleLine2 << std::endl;
-
-                libsgp4::SGP4 sgp4(libsgp4::Tle(satellite.satname, satellite.tleLine1, satellite.tleLine2));
-                libsgp4::DateTime dt(2025, 3, 17, 20, 0, 0);
-                libsgp4::Eci eci = sgp4.FindPosition(dt);
-                libsgp4::Vector position = eci.Position();
-                libsgp4::Vector velocity = eci.Velocity();
-
-                std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
-                std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
-
-                satellites.push_back(satellite);
-            }
-            else {
-                std::cerr << "TLE field is missing or not a string!" << std::endl;
-            }
-        }
-        else {
-            std::cerr << "Required fields are missing in the response!" << std::endl;
-        }
-    }
-    catch (const nlohmann::json::exception& e) {
-        std::cerr << "JSON parsing error: " << e.what() << std::endl;
-    }
-}
 
 std::vector<Vertex> ver = {
     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
@@ -214,9 +159,9 @@ int main() {
         fetchApi satelliteDataAPI;
         satelliteDataAPI.fetchDataFromAPI(url, satData);
     }
-	JSONParser jsonParser;
-	JSONParser::ParseJSONSattelite(satData, satellites);
-	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
+    JSONParser jsonParser;
+    JSONParser::ParseJSONSattelite(satData, satellites);
+    jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
     {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
 
