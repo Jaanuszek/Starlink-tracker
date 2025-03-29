@@ -248,7 +248,6 @@
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\VAO.h" />
     <ClInclude Include="include\VBO.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x64\libcurl.lib" />
@@ -259,9 +258,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\earthMap.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="StarlinkTracker.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
