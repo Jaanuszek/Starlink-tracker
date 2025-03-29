@@ -135,6 +135,9 @@
     <ClCompile Include="src\InputManager.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="src\JSONParser.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h">
@@ -284,6 +287,9 @@
     <ClInclude Include="include\InputManager.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="include\JSONParser.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
@@ -291,6 +297,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicShader.shader" />
+    <None Include="assets\geoJSON\countriesGeoJSON.json" />
+    <None Include="shaders\countriesBorderShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\earthMap.png">

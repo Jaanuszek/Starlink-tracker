@@ -192,6 +192,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\EBO.cpp" />
     <ClCompile Include="src\fetchApi.cpp" />
+    <ClCompile Include="src\JSONParser.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Models\Sphere.cpp" />
     <ClCompile Include="src\Shader.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="external\stb\stb_image.h" />
     <ClInclude Include="include\EBO.h" />
     <ClInclude Include="include\fetchApi.h" />
+    <ClInclude Include="include\JSONParser.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\Models\Sphere.h" />
     <ClInclude Include="include\Shader.h" />
@@ -256,7 +258,9 @@
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\geoJSON\countriesGeoJSON.json" />
     <None Include="shaders\basicShader.shader" />
+    <None Include="shaders\countriesBorderShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\earthMap.png" />
