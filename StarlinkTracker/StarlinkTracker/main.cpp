@@ -21,6 +21,7 @@
 #include "SGP4.h"
 #include <assimp/Importer.hpp>
 #include "include/Texture.h"
+#include "include/HttpServer.h"
 
 struct Satellite {
     int satid;
@@ -267,6 +268,9 @@ int main() {
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
+        HttpServer server;
+        server.start();
+
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
@@ -304,6 +308,7 @@ int main() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+        server.stop();
     }
 
     glfwDestroyWindow(window);
