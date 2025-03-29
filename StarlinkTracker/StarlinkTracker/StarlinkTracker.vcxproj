@@ -162,6 +162,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="external\imgui\imgui.cpp" />
     <ClCompile Include="external\imgui\imgui_demo.cpp" />
     <ClCompile Include="external\imgui\imgui_draw.cpp" />
@@ -197,8 +199,10 @@
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\VAO.cpp" />
     <ClCompile Include="src\VBO.cpp" />
+    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Camera.h" />
     <ClInclude Include="external\curl\curl.h" />
     <ClInclude Include="external\curl\curlver.h" />
     <ClInclude Include="external\curl\easy.h" />
@@ -246,6 +250,8 @@
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\VAO.h" />
     <ClInclude Include="include\VBO.h" />
+    <ClInclude Include="include\Window.h" />
+    <ClInclude Include="include\InputManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x64\libcurl.lib" />

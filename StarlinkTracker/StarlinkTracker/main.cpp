@@ -1,19 +1,38 @@
-#include <iostream>  
+#include <iostream>
 #include <fstream>  
-#include <string>  
-#include <curl/curl.h>  
-#include <glad/glad.h>  
-#include <GLFW/glfw3.h>  
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include <string>
+#include <curl/curl.h>
+#include <json.hpp>
+#include <assimp/Importer.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "Tle.h"
+#include "DateTime.h"
+#include "Vector.h"
+#include "SGP4.h"
+#include "include/Window.h"
+#include "include/Camera.h"
 #include "include/Shader.h"
 #include "include/fetchApi.h"
 #include "include/Mesh.h"
 #include "include/Models/Sphere.h"
 #include "include/JSONParser.h"
+#include "Tle.h"
+#include "DateTime.h"
+#include "Vector.h"
+#include "SGP4.h"
 #include <assimp/Importer.hpp>
+#include "include/Texture.h"
 
+struct Satellite {
+    int satid;
+    std::string satname;
+    int transactionscount;
+    std::string tleLine1;
+    std::string tleLine2;
+};
 
 int width = 800;
 int height = 600;
@@ -23,6 +42,57 @@ bool showSatelliteWindow = false;
 
 float rotationAngle = 0.0f;
 float rotationSpeed = 0.05f;
+
+GLfloat deltaTime = 0.0f;
+GLfloat lastTime = 0.0f;
+
+void parseJSONSattelite(const std::string& satData)
+{
+    try {
+        nlohmann::json parsedData = nlohmann::json::parse(satData);
+
+        if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
+            const auto& info = parsedData["info"];
+            Satellite satellite;
+            satellite.satid = info["satid"].get<int>();
+            satellite.satname = info["satname"].get<std::string>();
+            satellite.transactionscount = info["transactionscount"].get<int>();
+
+            if (parsedData["tle"].is_string()) {
+                std::string tle = parsedData["tle"].get<std::string>();
+
+                size_t splitPos = tle.find("\r\n");
+                if (splitPos != std::string::npos) {
+                    satellite.tleLine1 = tle.substr(0, splitPos);
+                    satellite.tleLine2 = tle.substr(splitPos + 2);
+                }
+				std::cout << satellite.satname << std::endl;
+				std::cout << satellite.tleLine1 << std::endl;
+				std::cout << satellite.tleLine2 << std::endl;
+
+                libsgp4::SGP4 sgp4(libsgp4::Tle(satellite.satname, satellite.tleLine1, satellite.tleLine2));
+                libsgp4::DateTime dt(2025, 3, 17, 20, 0, 0);
+                libsgp4::Eci eci = sgp4.FindPosition(dt);
+                libsgp4::Vector position = eci.Position();
+                libsgp4::Vector velocity = eci.Velocity();
+
+                std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
+                std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
+
+                satellites.push_back(satellite);
+            }
+            else {
+                std::cerr << "TLE field is missing or not a string!" << std::endl;
+            }
+        }
+        else {
+            std::cerr << "Required fields are missing in the response!" << std::endl;
+        }
+    }
+    catch (const nlohmann::json::exception& e) {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+    }
+}
 
 std::vector<Vertex> ver = {
     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
@@ -78,25 +148,6 @@ bool isPointInRectangle(float px, float py, glm::mat4 transform)
     return (s1 > 0 && t1 > 0 && (s1 + t1) < 2 * sign1 * area1) || (s2 > 0 && t2 > 0 && (s2 + t2) < 2 * sign2 * area2);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
-
-        float x = (xpos / width) * 2.0f - 1.0f;
-        float y = 1.0f - (ypos / height) * 2.0f;
-
-        glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-
-        if (isPointInRectangle(x, y, transform)) {
-            showSatelliteWindow = true;
-        }
-    }
-}
-
 void renderSatelliteDataImGui() {
     ImGui::Begin("Satellite Data");
     
@@ -140,32 +191,9 @@ void renderSatelliteDataImGui() {
     ImGui::End();
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
 int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(width, height, "StarlinkTracker", NULL, NULL);
-    if (!window) {
-        std::cerr << "[ERROR] creating GLFW!" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "[ERROR] initialising GLAD!" << std::endl;
-        return -1;
-    }
-    glfwSwapInterval(1);
-    glEnable(GL_DEPTH_TEST);
-    glViewport(0, 0, 800, 600);
+    Window mainWindow = Window(800, 600);
+    mainWindow.Initialize();
 
     std::string API_KEY;
     std::fstream file("apiKey.txt");
@@ -190,6 +218,8 @@ int main() {
 	JSONParser::ParseJSONSattelite(satData, satellites);
 	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
     {
+        Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
+
         Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
         std::vector<Vertex> SphereVertices = sphere.getVertices();
@@ -216,17 +246,7 @@ int main() {
         Shader shader("shaders/basicShader.shader");
         Shader shaderBorders("shaders/countriesBorderShader.shader");
 
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-        // Init ImGUI
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        ImGui::StyleColorsDark();
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 330");
-
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
         earthModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); //mirror reflection
         earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // rotate 180 degrees to match the borders
@@ -235,7 +255,15 @@ int main() {
         bordersModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); // mirror reflection
         bordersModel = glm::rotate(bordersModel, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees
 
-        while (!glfwWindowShouldClose(window)) {
+        while (!mainWindow.ShouldClose()) {
+            GLfloat now = glfwGetTime();
+            deltaTime = now - lastTime;
+            lastTime = now;
+
+            camera.ProcessKeyboardInput(deltaTime);
+            camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
+
+            mainWindow.ToggleCursorVisibility();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
@@ -251,19 +279,19 @@ int main() {
             // Set uniform matrix in Shader
             shader.setUniformMat4fv("projection", projection);
             shader.setUniformMat4fv("model", earthModel);
-            shader.setUniformMat4fv("view", View);
+            shader.setUniformMat4fv("view", camera.GetViewMatrix());
             shader.setUniform1i("ourTexture", 0);
             SphereMesh.Draw(GL_TRIANGLES);
 
             shaderBorders.useShaderProgram();
             shaderBorders.setUniformMat4fv("projection", projection);
             shaderBorders.setUniformMat4fv("model", bordersModel);
-            shaderBorders.setUniformMat4fv("view", View);
+            shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
             shaderBorders.setUniform1i("ourTexture", 0);
 
             CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
 
-            //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
+            //Jak chcesz wrocic do tego trï¿½jkï¿½ta/ prostokï¿½ta, to zakomentuj wyï¿½szï¿½ linijke i odkomunetuj to na dole
             //mesh.Draw();
 
             ImGui_ImplOpenGL3_NewFrame();
@@ -277,7 +305,7 @@ int main() {
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            glfwSwapBuffers(window);
+            mainWindow.SwapFrameBuffers();
             glfwPollEvents();
         }
 
@@ -287,7 +315,5 @@ int main() {
         ImGui::DestroyContext();
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
     return 0;
 }
