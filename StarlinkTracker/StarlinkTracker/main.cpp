@@ -184,7 +184,7 @@ void renderSatelliteDataImGui() {
 
 int main() {
     Window mainWindow = Window(800, 600);
-    mainWindow.Initialise();
+    mainWindow.Initialize();
 
     std::string API_KEY;
     std::fstream file("apiKey.txt");
@@ -218,17 +218,17 @@ int main() {
         // Set shader from a file
 		Shader shader("shaders/basicShader.shader");
 
-        glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), 0.1f, 100.f);
+        glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
 
-        while (!mainWindow.getShouldClose()) {
+        while (!mainWindow.ShouldClose()) {
             GLfloat now = glfwGetTime();
             deltaTime = now - lastTime;
             lastTime = now;
 
-            camera.keyControl(mainWindow.getKeys(), deltaTime);
-            camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange(), mainWindow.getIsRightMouseButtonPressed());
+            camera.ProcessKeyboardInput(deltaTime);
+            camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
 
-            mainWindow.toggleCursorVisibility();
+            mainWindow.ToggleCursorVisibility();
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             rotationAngle += rotationSpeed;
@@ -242,7 +242,7 @@ int main() {
 			// Set uniform matrix in Shader
 			shader.setUniformMat4fv("transform", transform);
             shader.setUniformMat4fv("projection", projection);
-            shader.setUniformMat4fv("view", camera.calculateViewMatrix());
+            shader.setUniformMat4fv("view", camera.GetViewMatrix());
 			shader.setUniform1i("ourTexture", 0);
 
             SphereMesh.Draw();
@@ -260,7 +260,7 @@ int main() {
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            mainWindow.SwapBuffers();
+            mainWindow.SwapFrameBuffers();
             glfwPollEvents();
         }
 

@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include "InputManager.h"
 
 class Window
 {
@@ -17,37 +18,32 @@ public:
 	Window(GLint windowWidth, GLint windowHeight);
 	~Window();
 
-	int Initialise();
-	GLfloat getBufferWidth() { return bufferWidth; };
-	GLfloat getBufferHeight() { return bufferHeight; };
-	bool getShouldClose() { return glfwWindowShouldClose(mainWindow); };
-	bool* getKeys() { return keys; };
-	GLfloat getXChange();
-	GLfloat getYChange();
-	void SwapBuffers() { glfwSwapBuffers(mainWindow); };
-	bool getIsRightMouseButtonPressed() { return rightMouseButtonPressed; }
-	void toggleCursorVisibility();
+	int Initialize();
+	GLfloat GetFrameBufferWidth() { return frameBufferWidth; };
+	GLfloat GetFrameBufferHeight() { return frameBufferHeight; };
+	bool ShouldClose() { return glfwWindowShouldClose(mainWindow); };
+	GLfloat GetMouseXDelta();
+	GLfloat GetMouseYDelta();
+	void SwapFrameBuffers() { glfwSwapBuffers(mainWindow); };
+	void ToggleCursorVisibility();
 
 private:
 	GLFWwindow* mainWindow;
 
 	GLint width, height;
-	GLint bufferWidth, bufferHeight;
-
-	bool keys[1024];
+	GLint frameBufferWidth, frameBufferHeight;
 
 	GLfloat lastX;
 	GLfloat lastY;
-	GLfloat xChange;
-	GLfloat yChange;
-	bool mousedFirstMoved;
-	bool rightMouseButtonPressed;
+	GLfloat mouseXDelta;
+	GLfloat mouseYDelta;
+	bool firstMouseMove;
 
-	void createCallbacks();
-	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	static void handleKeys(GLFWwindow* window, int key, int code, int action, int mode);
-	static void handleMouse(GLFWwindow* window, double xPos, double yPos);
-	static void handleMouseButton(GLFWwindow* window, int button, int action, int mods);
+	void CreateCallbacks();
+	static void OnFramebufferResize(GLFWwindow* window, int width, int height);
+	static void OnKeyInput(GLFWwindow* window, int key, int code, int action, int mode);
+	static void OnMouseMove(GLFWwindow* window, double xPos, double yPos);
+	static void OnMouseButtonClick(GLFWwindow* window, int button, int action, int mods);
 };
 
 #endif

@@ -126,6 +126,15 @@
     <ClCompile Include="src\Texture.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="src\InputManager.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\curl\curl.h">
@@ -266,6 +275,15 @@
     <ClInclude Include="include\Texture.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="include\Camera.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Window.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\InputManager.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="external\curl\lib\x86\libcurl-d.lib" />
@@ -275,9 +293,6 @@
     <None Include="shaders\basicShader.shader" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\Earth.png">
-      <Filter>Pliki zasobów</Filter>
-    </Image>
     <Image Include="assets\earthMap.png">
       <Filter>Pliki zasobów</Filter>
     </Image>
