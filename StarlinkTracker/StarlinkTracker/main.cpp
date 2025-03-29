@@ -7,11 +7,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-//#include "Tle.h"
-//#include "DateTime.h"
-//#include "Vector.h"
-//#include "SGP4.h"
 #include "include/Window.h"
 #include "include/Camera.h"
 #include "include/Shader.h"
@@ -19,13 +14,8 @@
 #include "include/Mesh.h"
 #include "include/Models/Sphere.h"
 #include "include/JSONParser.h"
-//#include "Tle.h"
-//#include "DateTime.h"
-//#include "Vector.h"
-//#include "SGP4.h"
 #include <assimp/Importer.hpp>
 #include "include/Texture.h"
-
 
 int width = 800;
 int height = 600;
@@ -200,6 +190,9 @@ int main() {
         bordersModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); // mirror reflection
         bordersModel = glm::rotate(bordersModel, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees
 
+        HttpServer server;
+        server.start();
+
         while (!mainWindow.ShouldClose()) {
             GLfloat now = glfwGetTime();
             deltaTime = now - lastTime;
@@ -258,6 +251,7 @@ int main() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+        server.stop();
     }
 
     return 0;

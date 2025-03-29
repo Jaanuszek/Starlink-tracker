@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4;$(SolutionDir)StarlinkTracker\external\httplib</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD;$(SolutionDir)StarlinkTracker\external\assimp\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD;$(SolutionDir)StarlinkTracker\external\assimp\lib</LibraryPath>
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4;$(SolutionDir)StarlinkTracker\external\httplib</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4;$(SolutionDir)StarlinkTracker\external\httplib</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD;$(SolutionDir)StarlinkTracker\external\assimp\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4</IncludePath>
+    <IncludePath>$(SolutionDir)StarlinkTracker\external\openGL\include;$(SolutionDir)StarlinkTracker\external\nlohmann;$(SolutionDir)StarlinkTracker\external\curl;$(SolutionDir)StarlinkTracker\external\imgui;$(SolutionDir)StarlinkTracker\external\libsgp4;$(SolutionDir)StarlinkTracker\external\httplib</IncludePath>
     <LibraryPath>$(SolutionDir)StarlinkTracker\external\openGL\lib;$(SolutionDir)StarlinkTracker\external\curl\lib\x64;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD;$(SolutionDir)StarlinkTracker\external\assimp\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -189,6 +189,7 @@
     <ClCompile Include="external\libsgp4\Vector.cc" />
     <ClCompile Include="external\stb\stb.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="src\HttpServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\EBO.cpp" />
     <ClCompile Include="src\fetchApi.cpp" />
@@ -196,6 +197,7 @@
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Models\Sphere.cpp" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\StarlinkService.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\VAO.cpp" />
     <ClCompile Include="src\VBO.cpp" />
@@ -241,12 +243,14 @@
     <ClInclude Include="external\libsgp4\Util.h" />
     <ClInclude Include="external\libsgp4\Vector.h" />
     <ClInclude Include="external\stb\stb_image.h" />
+    <ClInclude Include="include\HttpServer.h" />
     <ClInclude Include="include\EBO.h" />
     <ClInclude Include="include\fetchApi.h" />
     <ClInclude Include="include\JSONParser.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\Models\Sphere.h" />
     <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="include\StarlinkService.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\VAO.h" />
     <ClInclude Include="include\VBO.h" />
