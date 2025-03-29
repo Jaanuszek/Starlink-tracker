@@ -16,6 +16,7 @@
 #include "include/JSONParser.h"
 #include <assimp/Importer.hpp>
 #include "include/Texture.h"
+#include "include/HttpServer.h"
 
 int width = 800;
 int height = 600;
