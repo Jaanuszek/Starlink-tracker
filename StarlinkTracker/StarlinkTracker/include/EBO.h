@@ -12,6 +12,7 @@ private:
 	unsigned int indicesCountBytes;
 public:
 	EBO(std::vector<unsigned int>& indices);
+	EBO() = default;
 	~EBO();
 	void Bind();
 	void Unbind();

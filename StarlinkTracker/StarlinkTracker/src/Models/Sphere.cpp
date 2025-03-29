@@ -12,7 +12,7 @@ Sphere::~Sphere()
 
 void Sphere::CreateSphere(int sectorCount, int stackCount, float radius) 
 {
-	const float PI = 3.1415926f;
+	const float PI = 3.14159265358979323846f;
 	sphereVertices.resize((sectorCount + 1) * (stackCount + 1));
 	sphereIndices.resize(sectorCount * stackCount * 6);
 
@@ -30,6 +30,9 @@ void Sphere::CreateSphere(int sectorCount, int stackCount, float radius)
 			float x = cos(theta) * sin(phi) * radius;
 			float y = cos(phi) * radius;
 			float z = sin(theta) * sin(phi) * radius;
+			//float x = radius * cos(phi) * cos(theta);
+			//float y = radius * sin(phi);
+			//float z = radius * cos(phi) * sin(theta);
 			vertexIterator->position = glm::vec3(x, y, z);
 			vertexIterator->normal = glm::vec3(x, y, z);
 			vertexIterator->texPos = glm::vec2(U, V);

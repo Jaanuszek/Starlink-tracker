@@ -4,10 +4,6 @@
 #include <curl/curl.h>  
 #include <glad/glad.h>  
 #include <GLFW/glfw3.h>  
-#include <json.hpp>  
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -15,20 +11,12 @@
 #include "include/fetchApi.h"
 #include "include/Mesh.h"
 #include "include/Models/Sphere.h"
-#include "Tle.h"
-#include "DateTime.h"
-#include "Vector.h"
-#include "SGP4.h"
+#include "include/JSONParser.h"
 #include <assimp/Importer.hpp>
-#include "include/Texture.h"
 
-struct Satellite {
-    int satid;
-    std::string satname;
-    int transactionscount;
-    std::string tleLine1;
-    std::string tleLine2;
-};
+
+int width = 800;
+int height = 600;
 
 std::vector<Satellite> satellites;
 bool showSatelliteWindow = false;
@@ -36,57 +24,9 @@ bool showSatelliteWindow = false;
 float rotationAngle = 0.0f;
 float rotationSpeed = 0.05f;
 
-void parseJSONSattelite(const std::string& satData)
-{
-    try {
-        nlohmann::json parsedData = nlohmann::json::parse(satData);
-
-        if (parsedData.contains("info") && parsedData["info"].contains("satid") && parsedData["info"].contains("satname") && parsedData["info"].contains("transactionscount") && parsedData.contains("tle")) {
-            const auto& info = parsedData["info"];
-            Satellite satellite;
-            satellite.satid = info["satid"].get<int>();
-            satellite.satname = info["satname"].get<std::string>();
-            satellite.transactionscount = info["transactionscount"].get<int>();
-
-            if (parsedData["tle"].is_string()) {
-                std::string tle = parsedData["tle"].get<std::string>();
-
-                size_t splitPos = tle.find("\r\n");
-                if (splitPos != std::string::npos) {
-                    satellite.tleLine1 = tle.substr(0, splitPos);
-                    satellite.tleLine2 = tle.substr(splitPos + 2);
-                }
-				std::cout << satellite.satname << std::endl;
-				std::cout << satellite.tleLine1 << std::endl;
-				std::cout << satellite.tleLine2 << std::endl;
-
-                libsgp4::SGP4 sgp4(libsgp4::Tle(satellite.satname, satellite.tleLine1, satellite.tleLine2));
-                libsgp4::DateTime dt(2025, 3, 17, 20, 0, 0);
-                libsgp4::Eci eci = sgp4.FindPosition(dt);
-                libsgp4::Vector position = eci.Position();
-                libsgp4::Vector velocity = eci.Velocity();
-
-                std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
-                std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
-
-                satellites.push_back(satellite);
-            }
-            else {
-                std::cerr << "TLE field is missing or not a string!" << std::endl;
-            }
-        }
-        else {
-            std::cerr << "Required fields are missing in the response!" << std::endl;
-        }
-    }
-    catch (const nlohmann::json::exception& e) {
-        std::cerr << "JSON parsing error: " << e.what() << std::endl;
-    }
-}
-
 std::vector<Vertex> ver = {
     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
-	{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
     {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
     {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}}
 };
@@ -113,29 +53,29 @@ bool isPointInTriangle(float px, float py, glm::mat4 transform) {
 
 bool isPointInRectangle(float px, float py, glm::mat4 transform)
 {
-	glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
-	glm::vec4 v2 = transform * glm::vec4(ver[1].position, 1.0f);
-	glm::vec4 v3 = transform * glm::vec4(ver[2].position, 1.0f);
-	glm::vec4 v4 = transform * glm::vec4(ver[3].position, 1.0f);
+    glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
+    glm::vec4 v2 = transform * glm::vec4(ver[1].position, 1.0f);
+    glm::vec4 v3 = transform * glm::vec4(ver[2].position, 1.0f);
+    glm::vec4 v4 = transform * glm::vec4(ver[3].position, 1.0f);
 
-	float x1 = v1.x, y1 = v1.y;
-	float x2 = v2.x, y2 = v2.y;
-	float x3 = v3.x, y3 = v3.y;
-	float x4 = v4.x, y4 = v4.y;
+    float x1 = v1.x, y1 = v1.y;
+    float x2 = v2.x, y2 = v2.y;
+    float x3 = v3.x, y3 = v3.y;
+    float x4 = v4.x, y4 = v4.y;
 
-	float area1 = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
-	float sign1 = area1 < 0 ? -1.0f : 1.0f;
+    float area1 = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
+    float sign1 = area1 < 0 ? -1.0f : 1.0f;
 
-	float s1 = sign1 * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
-	float t1 = sign1 * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
+    float s1 = sign1 * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
+    float t1 = sign1 * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
 
-	float area2 = 0.5f * (-y3 * x4 + y1 * (-x3 + x4) + x1 * (y3 - y4) + x3 * y4);
-	float sign2 = area2 < 0 ? -1.0f : 1.0f;
+    float area2 = 0.5f * (-y3 * x4 + y1 * (-x3 + x4) + x1 * (y3 - y4) + x3 * y4);
+    float sign2 = area2 < 0 ? -1.0f : 1.0f;
 
-	float s2 = sign2 * (y1 * x4 - x1 * y4 + (y4 - y1) * px + (x1 - x4) * py);
-	float t2 = sign2 * (x1 * y3 - y1 * x3 + (y1 - y3) * px + (x3 - x1) * py);
+    float s2 = sign2 * (y1 * x4 - x1 * y4 + (y4 - y1) * px + (x1 - x4) * py);
+    float t2 = sign2 * (x1 * y3 - y1 * x3 + (y1 - y3) * px + (x3 - x1) * py);
 
-	return (s1 > 0 && t1 > 0 && (s1 + t1) < 2 * sign1 * area1) || (s2 > 0 && t2 > 0 && (s2 + t2) < 2 * sign2 * area2);
+    return (s1 > 0 && t1 > 0 && (s1 + t1) < 2 * sign1 * area1) || (s2 > 0 && t2 > 0 && (s2 + t2) < 2 * sign2 * area2);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -210,7 +150,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "StarlinkTracker", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "StarlinkTracker", NULL, NULL);
     if (!window) {
         std::cerr << "[ERROR] creating GLFW!" << std::endl;
         glfwTerminate();
@@ -224,7 +164,7 @@ int main() {
         return -1;
     }
     glfwSwapInterval(1);
-	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glViewport(0, 0, 800, 600);
 
     std::string API_KEY;
@@ -238,24 +178,43 @@ int main() {
         return -1;
     }
 
-    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
+    std::string SAT_ID = "63329";  // For example, ISS (International Space Station)
     std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
     std::string satData;
     {
-		// zrobilem scope zeby sie destruktor wywolal i zamknal curla
+        // zrobilem scope zeby sie destruktor wywolal i zamknal curla
         fetchApi satelliteDataAPI;
         satelliteDataAPI.fetchDataFromAPI(url, satData);
     }
-	parseJSONSattelite(satData);
-
+	JSONParser jsonParser;
+	JSONParser::ParseJSONSattelite(satData, satellites);
+	jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
     {
         Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
-		std::vector<Vertex> SphereVertices = sphere.getVertices();
-		std::vector<unsigned int> SphereIndices = sphere.getIndices();
+        std::vector<Vertex> SphereVertices = sphere.getVertices();
+        std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
+
+        // Drawing countries on map
+        std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
+
+        std::vector<int> countriesOffsets; // offset for each country
+        std::vector<int> countriesCounts; // count of vertices for each country
+        std::vector<VertexPosOnly> countriesBorderVertices;
+
+        for (auto& [country, primitiveData] : countriesMap) {
+            for (const auto& [polygonIndex, polygonVertices] : primitiveData.polygons) {
+                countriesBorderVertices.insert(countriesBorderVertices.end(), polygonVertices.begin(), polygonVertices.end());
+                countriesOffsets.push_back(countriesBorderVertices.size() - polygonVertices.size());
+                countriesCounts.push_back(polygonVertices.size());
+            }
+        }
+        Mesh CountriesBorderMesh(countriesBorderVertices);
+
         // Set shader from a file
-		Shader shader("shaders/basicShader.shader");
+        Shader shader("shaders/basicShader.shader");
+        Shader shaderBorders("shaders/countriesBorderShader.shader");
 
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -267,23 +226,45 @@ int main() {
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
 
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 earthModel = glm::mat4(1.0f);
+        earthModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); //mirror reflection
+        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // rotate 180 degrees to match the borders
+        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees to change coordinates upside down 
+        glm::mat4 bordersModel = glm::mat4(1.0f);
+        bordersModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); // mirror reflection
+        bordersModel = glm::rotate(bordersModel, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees
+
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
             rotationAngle += rotationSpeed;
-            glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-
+            glm::mat4 View = glm::mat4(1.0f);
+            View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
+            View = glm::rotate(View, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
 
-			// Use shader program (use this specific shader)
-			shader.useShaderProgram();
-			// Set uniform matrix in Shader
-			shader.setUniformMat4fv("transform", transform);
-			shader.setUniform1i("ourTexture", 0);
+            //Use shader program (use this specific shader)
+            shader.useShaderProgram();
+            // Set uniform matrix in Shader
+            shader.setUniformMat4fv("projection", projection);
+            shader.setUniformMat4fv("model", earthModel);
+            shader.setUniformMat4fv("view", View);
+            shader.setUniform1i("ourTexture", 0);
+            SphereMesh.Draw(GL_TRIANGLES);
 
-            SphereMesh.Draw();
+            shaderBorders.useShaderProgram();
+            shaderBorders.setUniformMat4fv("projection", projection);
+            shaderBorders.setUniformMat4fv("model", bordersModel);
+            shaderBorders.setUniformMat4fv("view", View);
+            shaderBorders.setUniform1i("ourTexture", 0);
+
+            CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
+
             //Jak chcesz wrocic do tego trójk¹ta/ prostok¹ta, to zakomentuj wy¿sz¹ linijke i odkomunetuj to na dole
-			//mesh.Draw();
+            //mesh.Draw();
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();

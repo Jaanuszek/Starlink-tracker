@@ -14,6 +14,7 @@ private:
 	unsigned char* textureData = nullptr;
 public:
 	Texture(const char* path);
+	Texture() = default;
 	~Texture();
 
 	void Bind(unsigned int textureIndex);
