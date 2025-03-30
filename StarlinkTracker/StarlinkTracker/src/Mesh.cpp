@@ -9,7 +9,6 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     vbo.Bind();
     ebo.Bind();
     vbo.AddVertexStructAttribs();
-    //vbo.SetAttribPointers();
     vbo.Unbind();
     vao.Unbind();
 

@@ -195,7 +195,9 @@
     <ClCompile Include="src\fetchApi.cpp" />
     <ClCompile Include="src\JSONParser.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Models\Sphere.cpp" />
+    <ClCompile Include="src\Models\Starlink.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\StarlinkService.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -248,7 +250,9 @@
     <ClInclude Include="include\fetchApi.h" />
     <ClInclude Include="include\JSONParser.h" />
     <ClInclude Include="include\Mesh.h" />
+    <ClInclude Include="include\Model.h" />
     <ClInclude Include="include\Models\Sphere.h" />
+    <ClInclude Include="include\Models\Starlink.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\StarlinkService.h" />
     <ClInclude Include="include\Texture.h" />
