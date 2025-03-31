@@ -86,7 +86,6 @@ int main() {
     }
 
     std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
-    std::vector<std::string> satData;
     std::map<std::string, std::string> satelitesData;
     {
         fetchApi satelliteDataAPI;
@@ -148,10 +147,15 @@ int main() {
         HttpServer server;
         server.start();
 
+        GLfloat simulationTime = 0.0f;
+
         while (!mainWindow.ShouldClose()) {
+
             GLfloat now = glfwGetTime();
             deltaTime = now - lastTime;
             lastTime = now;
+
+            simulationTime += deltaTime * 180.0f; // 30.0f is the speed of the simulation
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
@@ -188,6 +192,7 @@ int main() {
             starlinkShader.setUniformMat4fv("projection", projection);
             starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
             for (auto& starlink : starlinks) {
+                starlink.UpdatePosition(simulationTime);
                 starlinkShader.setUniformMat4fv("model", starlink.getModelMatrix());
                 starlinkModel.DrawModel();
             }
