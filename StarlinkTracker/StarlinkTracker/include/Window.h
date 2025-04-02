@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <iostream>  
+#include <string>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -26,6 +27,8 @@ public:
 	GLfloat GetMouseYDelta();
 	void SwapFrameBuffers() { glfwSwapBuffers(mainWindow); };
 	void ToggleCursorVisibility();
+	void SetWindowTitle(const std::string& title);
+    float CountFPSandMS(double& previousTime, double& currentTime, double timeDiff, unsigned int& frameCounter);
 
 private:
 	GLFWwindow* mainWindow;

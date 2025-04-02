@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <chrono>
 #include <curl/curl.h>
 #include <json.hpp>
 #include "include/Window.h"
@@ -108,13 +109,13 @@ int main() {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
 
         Sphere sphere(100, 100, 0.5f);
-        std::vector<Vertex> SphereVertices = sphere.getVertices();
+        std::vector<Vertex> SphereVertices = sphere.getVertices();  
         std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
 
-        std::vector<Starlink> starlinks;
+        std::vector<std::unique_ptr<Starlink>> starlinks;
         for (auto& sat : satellites) {
-            starlinks.push_back(Starlink(sat));
+            starlinks.push_back(std::make_unique<Starlink>(sat));
         }
 
         // Drawing countries on map
@@ -149,11 +150,29 @@ int main() {
 
         GLfloat simulationTime = 0.0f;
 
+        // for FPS counter
+        double previousTime = 0.0;
+        double currentTime = 0.0;
+        double timeDiff;
+        unsigned int frameCounter = 0;
+        float FPS = 0.0f;
+
+        // Counting time for trajectory line
+        auto lastTimeChrono = std::chrono::high_resolution_clock::now();
+
         while (!mainWindow.ShouldClose()) {
+            auto currTime = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<float> elapsed = currTime - lastTimeChrono;
 
             GLfloat now = glfwGetTime();
             deltaTime = now - lastTime;
             lastTime = now;
+
+            // FPS counter, it work simillar to deltaTime, but a little bit different. That's why we need different variables for that
+            currentTime = glfwGetTime();
+            timeDiff = currentTime - previousTime;
+            frameCounter++;
+            FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
 
             simulationTime += deltaTime * 180.0f; // 30.0f is the speed of the simulation
 
@@ -192,9 +211,22 @@ int main() {
             starlinkShader.setUniformMat4fv("projection", projection);
             starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
             for (auto& starlink : starlinks) {
-                starlink.UpdatePosition(simulationTime);
-                starlinkShader.setUniformMat4fv("model", starlink.getModelMatrix());
+                // Updating Starlink position
+                starlink->UpdatePosition(simulationTime);
+                // Drawing Starlink model
+                starlinkShader.setUniformMat4fv("model", starlink->getModelMatrix());
                 starlinkModel.DrawModel();
+                // Drawing trajectory
+                // DOdac rózne kolory dla róznych starlinków
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
+                model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                starlinkShader.setUniformMat4fv("model", model);
+                if (elapsed.count() > 0.1f){
+                    starlink->saveStarlinkPositionInVector();
+                    lastTimeChrono = currTime;
+                }
+                starlink->DrawTrajectory();
             }
 
             ImGui_ImplOpenGL3_NewFrame();

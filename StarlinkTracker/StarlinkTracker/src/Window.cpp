@@ -110,3 +110,25 @@ GLfloat Window::GetMouseYDelta() {
     mouseYDelta = 0.0f;
     return delta;
 }
+
+void Window::SetWindowTitle(const std::string& title) {
+    glfwSetWindowTitle(mainWindow, title.c_str());
+}
+
+float Window::CountFPSandMS(double& previousTime, double& currentTime, double timeDiff, unsigned int& frameCounter) {
+    std::string FPS_string;
+    std::string ms;
+    std::string newTitle;
+    float FPSCount = 0.0;
+    if (timeDiff >= 1.0 / 30.0)
+    {
+        FPSCount = frameCounter / timeDiff;
+        FPS_string = std::to_string(FPSCount);
+        ms = std::to_string((timeDiff / frameCounter) * 1000);
+        newTitle = "StarlinkTracker: " + FPS_string + "FPS, " + ms + " ms/frame";
+        SetWindowTitle(newTitle);
+        frameCounter = 0;
+        previousTime = currentTime;
+    }
+    return FPSCount;
+}

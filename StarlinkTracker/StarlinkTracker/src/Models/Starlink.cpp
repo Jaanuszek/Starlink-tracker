@@ -18,12 +18,9 @@ Starlink::Starlink(const Satellite& satelliteInfo)
     model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
     model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::translate(model, changeCoordsToSphere());
-    for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-        std::cout << model[i][j] << " ";
-    }
-    std::cout << std::endl;
-    }
+
+    trajectoryLine.resize(1000);
+    starlinkTrajectoryLine = std::make_unique<Mesh>(trajectoryLine, true);
 }
 
 Starlink::~Starlink() {}
@@ -50,4 +47,60 @@ glm::vec3 Starlink::changeCoordsToSphere() {
     float y = radius * cos(phi);
     float z = radius * sin(phi) * sin(theta);
     return { x, y, z };
+}
+
+glm::vec3 Starlink::changeCoordsToSphere(float lon, float lat, float radius)
+{
+    float theta = lon * M_PI / 180.0f;
+    float phi = (90.0f - lat) * M_PI / 180.0f;
+    float x = radius * sin(phi) * cos(theta);
+    float y = radius * cos(phi);
+    float z = radius * sin(phi) * sin(theta);
+    return { x, y, z };
+}
+
+void Starlink::createTrajectoryLine() {
+    float period; // in seconds
+    // 6378 is only radius of equator. In case of any problems with trajectory line, get back here
+    float orbitalRadius = 6378.1 + satelliteInfo.altitude; // earth radius plus satellite altitude [KM]
+    float earthGravitationalConstant = 398600.4418; // [km^3/s^2]
+    period = 2 * M_PI * sqrt((pow(orbitalRadius, 3)) / earthGravitationalConstant);
+    //std::cout << "Period: " << period / 60.0f << " minutes" << std::endl;
+    for (int i = 0; i < 1000; i++)
+    {
+        libsgp4::DateTime currentTime = startTime.AddSeconds(i * period / 100);
+        libsgp4::Eci eci = sgp4.FindPosition(currentTime);
+        libsgp4::CoordGeodetic geodetic = eci.ToGeodetic();
+        float latitude = geodetic.latitude * (180.0f / M_PI);
+        float longitude = geodetic.longitude * (180.0f / M_PI);
+        VertexPosOnly vertex;
+        vertex.position = changeCoordsToSphere(latitude, longitude, radius);
+        trajectoryLine.push_back(vertex);
+    }
+    //for (auto& vertex : trajectoryLine)
+    //{
+    //    std::cout << "Trajectory line: x = " << vertex.position.x << ", y = " << vertex.position.y << ", z = " << vertex.position.z << std::endl;
+    //}
+}
+
+void Starlink::saveStarlinkPositionInVector()
+{
+    VertexPosOnly vertex;
+    vertex.position = changeCoordsToSphere();
+    if (savedTrajectoryCoords < trajectoryLine.size())
+    {
+        trajectoryLine[savedTrajectoryCoords] = vertex;
+        savedTrajectoryCoords++;
+    }
+    else
+    {
+        vertex.position = { 0.0f, 0.0f, 0.0f };
+        trajectoryLine.resize(1000, vertex);
+        savedTrajectoryCoords = 0;
+    }
+    starlinkTrajectoryLine->UpdateData(trajectoryLine);
+}
+
+void Starlink::DrawTrajectory() {
+    starlinkTrajectoryLine->DrawWithoutEBO(GL_LINE_STRIP, savedTrajectoryCoords % trajectoryLine.size());
 }

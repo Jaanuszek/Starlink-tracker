@@ -15,8 +15,8 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     texture.Bind(0);
 }
 
-Mesh::Mesh(std::vector<VertexPosOnly>& vertices)
-    : vbo(vertices), ebo(), texture()
+Mesh::Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate)
+    : vbo(vertices, dynamicUpdate), ebo(), texture()
 {
     std::vector<VertexAttrib> attribs = {
         {0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosOnly), (void*)0}
@@ -54,4 +54,9 @@ void Mesh::DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndice
     vao.Bind();
     glMultiDrawArrays(primitiveType, firstIndices.data(), counts.data(), drawCount);
     vao.Unbind();
+}
+
+void Mesh::UpdateData(const std::vector<VertexPosOnly>& vertices)
+{
+    vbo.UpdateData(vertices);
 }
