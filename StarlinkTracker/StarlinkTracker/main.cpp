@@ -104,7 +104,7 @@ int main() {
     for (auto& [satID, satData] : satelitesData) {
         JSONParser::ParseJSONSattelite(satData, satellites);
     }
-    jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
+    jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.50f);
     {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
 
