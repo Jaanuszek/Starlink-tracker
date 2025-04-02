@@ -10,7 +10,7 @@ void enableStarlink(int starlinkId);
 
 void highlightStarlink(int starlinkId);
 
-void toggleCountriesBorder();
+void toggleCountriesBorder(bool* isCountriesBorderVisible);
 
 void showTrajectory(int starlinkId);
 

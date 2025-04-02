@@ -8,7 +8,7 @@
 
 class HttpServer {
 public:
-    HttpServer();
+    HttpServer(bool* isCountriesBorderVisiblePtr);
     ~HttpServer();
 
     void start();
@@ -19,6 +19,8 @@ private:
 
     std::thread serverThread;
     httplib::Server svr;
+
+    bool* isCountriesBorderVisible;
 };
 
 #endif // HTTPSERVER_HPP

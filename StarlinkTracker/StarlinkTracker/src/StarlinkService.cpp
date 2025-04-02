@@ -13,8 +13,9 @@ void highlightStarlink(int starlinkId) {
     std::cout << "Highlighting Starlink with ID: " << starlinkId << std::endl;
 }
 
-void toggleCountriesBorder() {
-    std::cout << "Toggling countries borders visibility" << std::endl;
+void toggleCountriesBorder(bool* isCountriesBorderVisible) {
+    *isCountriesBorderVisible = !(*isCountriesBorderVisible);
+    std::cout << "Countries border visibility: " << (*isCountriesBorderVisible ? "Enabled" : "Disabled") << std::endl;
 }
 
 void showTrajectory(int starlinkId) {

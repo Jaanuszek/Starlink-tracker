@@ -30,6 +30,8 @@ float rotationSpeed = 0.05f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+bool isCountriesBorderVisible = false;
+
 std::vector<Vertex> ver = {
     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
     {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
@@ -142,7 +144,7 @@ int main() {
         return -1;
     }
 
-    std::string SAT_ID = "63329";  // For example, ISS (International Space Station)
+    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
     std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
     std::string satData;
     {
@@ -191,7 +193,7 @@ int main() {
         bordersModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); // mirror reflection
         bordersModel = glm::rotate(bordersModel, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees
 
-        HttpServer server;
+        HttpServer server = HttpServer(&isCountriesBorderVisible);
         server.start();
 
         while (!mainWindow.ShouldClose()) {
@@ -222,13 +224,15 @@ int main() {
             shader.setUniform1i("ourTexture", 0);
             SphereMesh.Draw(GL_TRIANGLES);
 
-            shaderBorders.useShaderProgram();
-            shaderBorders.setUniformMat4fv("projection", projection);
-            shaderBorders.setUniformMat4fv("model", bordersModel);
-            shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
-            shaderBorders.setUniform1i("ourTexture", 0);
+            if (isCountriesBorderVisible) {
+                shaderBorders.useShaderProgram();
+                shaderBorders.setUniformMat4fv("projection", projection);
+                shaderBorders.setUniformMat4fv("model", bordersModel);
+                shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
+                shaderBorders.setUniform1i("ourTexture", 0);
 
-            CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
+                CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
+            }
 
             //Jak chcesz wrocic do tego tr�jk�ta/ prostok�ta, to zakomentuj wy�sz� linijke i odkomunetuj to na dole
             //mesh.Draw();
