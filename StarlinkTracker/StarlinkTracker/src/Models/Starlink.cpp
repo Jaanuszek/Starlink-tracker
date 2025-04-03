@@ -1,8 +1,9 @@
 #include "../../include/Models/Starlink.h"
 
-Starlink::Starlink(const Satellite& satelliteInfo)
+Starlink::Starlink(const Satellite& satelliteInfo, const std::tm& local_time)
     : satelliteInfo(satelliteInfo), sgp4(libsgp4::Tle(satelliteInfo.satname, satelliteInfo.tleLine1, satelliteInfo.tleLine2)),
-    startTime(2025, 3, 31, 20, 0, 0), eci(sgp4.FindPosition(startTime)), geodetic(eci.ToGeodetic())
+    startTime(1900 + local_time.tm_year, 1 + local_time.tm_mon, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec), 
+    eci(sgp4.FindPosition(startTime)), geodetic(eci.ToGeodetic())
 {
     libsgp4::Vector position = eci.Position();
     libsgp4::Vector velocity = eci.Velocity();
@@ -16,11 +17,15 @@ Starlink::Starlink(const Satellite& satelliteInfo)
 
     model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-    model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::translate(model, changeCoordsToSphere());
 
     trajectoryLine.resize(1000);
     starlinkTrajectoryLine = std::make_unique<Mesh>(trajectoryLine, true);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.2f, 1.0f);
+    trajectoryLineColor = { dis(gen), dis(gen), dis(gen), dis(gen) };
 }
 
 Starlink::~Starlink() {}
@@ -36,7 +41,6 @@ void Starlink::UpdatePosition(float elapsedSeconds) {
 
     model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-    model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::translate(model, changeCoordsToSphere());
 }
 
@@ -77,10 +81,6 @@ void Starlink::createTrajectoryLine() {
         vertex.position = changeCoordsToSphere(latitude, longitude, radius);
         trajectoryLine.push_back(vertex);
     }
-    //for (auto& vertex : trajectoryLine)
-    //{
-    //    std::cout << "Trajectory line: x = " << vertex.position.x << ", y = " << vertex.position.y << ", z = " << vertex.position.z << std::endl;
-    //}
 }
 
 void Starlink::saveStarlinkPositionInVector()

@@ -74,6 +74,11 @@ void renderSatelliteDataImGui() {
 int main() {
     Window mainWindow = Window(800, 600);
     mainWindow.Initialize();
+    
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm local_time;
+    localtime_s(&local_time, &now_c);
 
     std::string API_KEY;
     std::fstream file("apiKey.txt");
@@ -115,10 +120,10 @@ int main() {
 
         std::vector<std::unique_ptr<Starlink>> starlinks;
         for (auto& sat : satellites) {
-            starlinks.push_back(std::make_unique<Starlink>(sat));
+            starlinks.push_back(std::make_unique<Starlink>(sat, local_time));
         }
 
-        // Drawing countries on map
+        // Coordinates for drawing borders on the sphere
         std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
 
         std::vector<int> countriesOffsets; // offset for each country
@@ -138,6 +143,7 @@ int main() {
         Shader shader("shaders/basicShader.shader");
         Shader shaderBorders("shaders/countriesBorderShader.shader");
         Shader starlinkShader("shaders/countriesBorderShader.shader"); //temporary shader
+        Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
 
         glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
@@ -174,7 +180,7 @@ int main() {
             frameCounter++;
             FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
 
-            simulationTime += deltaTime * 180.0f; // 30.0f is the speed of the simulation
+            simulationTime += deltaTime; // 30.0f is the speed of the simulation
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
@@ -207,21 +213,24 @@ int main() {
 
             CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
 
-            starlinkShader.useShaderProgram();
-            starlinkShader.setUniformMat4fv("projection", projection);
-            starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
             for (auto& starlink : starlinks) {
+                starlinkShader.useShaderProgram();
+                starlinkShader.setUniformMat4fv("projection", projection);
+                starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
+                starlinkShader.setUniformMat4fv("model", starlink->getModelMatrix());
                 // Updating Starlink position
                 starlink->UpdatePosition(simulationTime);
                 // Drawing Starlink model
-                starlinkShader.setUniformMat4fv("model", starlink->getModelMatrix());
                 starlinkModel.DrawModel();
                 // Drawing trajectory
-                // DOdac rózne kolory dla róznych starlinków
+                starlinkTrajectoryShader.useShaderProgram();
+                starlinkTrajectoryShader.setUniformMat4fv("projection", projection);
+                starlinkTrajectoryShader.setUniformMat4fv("view", camera.GetViewMatrix());
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-                model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                starlinkShader.setUniformMat4fv("model", model);
+                starlinkTrajectoryShader.setUniformMat4fv("model", model);
+                starlinkTrajectoryShader.setUniformVec4f("color", starlink->getTrajectoryLineColor());
+                // saving starlink position in vector every 0.1 seconds
                 if (elapsed.count() > 0.1f){
                     starlink->saveStarlinkPositionInVector();
                     lastTimeChrono = currTime;
