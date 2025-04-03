@@ -28,6 +28,9 @@ float rotationSpeed = 0.05f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+
+bool isCountriesBorderVisible = false;
+
 void renderSatelliteDataImGui() {
     ImGui::Begin("Satellite Data");
     
@@ -93,6 +96,7 @@ int main() {
 
     std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
     std::map<std::string, std::string> satelitesData;
+
     {
         fetchApi satelliteDataAPI;
         for (const auto& SAT_ID : satIDs) {
@@ -151,7 +155,7 @@ int main() {
         glm::mat4 bordersModel = glm::mat4(1.0f);
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
-        HttpServer server;
+        HttpServer server = HttpServer(&isCountriesBorderVisible);
         server.start();
 
         GLfloat simulationTime = 0.0f;
@@ -205,13 +209,15 @@ int main() {
             shader.setUniform1i("ourTexture", 0);
             SphereMesh.Draw(GL_TRIANGLES);
 
-            shaderBorders.useShaderProgram();
-            shaderBorders.setUniformMat4fv("projection", projection);
-            shaderBorders.setUniformMat4fv("model", bordersModel);
-            shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
-            shaderBorders.setUniform1i("ourTexture", 0);
+            if (isCountriesBorderVisible) {
+                shaderBorders.useShaderProgram();
+                shaderBorders.setUniformMat4fv("projection", projection);
+                shaderBorders.setUniformMat4fv("model", bordersModel);
+                shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
+                shaderBorders.setUniform1i("ourTexture", 0);
 
-            CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
+                CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
+            }
 
             for (auto& starlink : starlinks) {
                 starlinkShader.useShaderProgram();

@@ -3,7 +3,7 @@
 
 using json = nlohmann::json;
 
-HttpServer::HttpServer() {}
+HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr) : isCountriesBorderVisible(isCountriesBorderVisiblePtr) {}
 
 HttpServer::~HttpServer() {
     stop();
@@ -60,10 +60,21 @@ void HttpServer::setupEndpoints() {
         res.set_content(json{ {"message", "Starlink highlighted"} }.dump(), "application/json");
         });
 
-    svr.Post("/ToggleCountriesBorder", [](const httplib::Request& req, httplib::Response& res) {
-        toggleCountriesBorder();
+    svr.Post("/ToggleCountriesBorder", [this](const httplib::Request& req, httplib::Response& res) {
+        toggleCountriesBorder(isCountriesBorderVisible);
 
-        res.set_content(json{ {"message", "Countries border visibility toggled"} }.dump(), "application/json");
+        json response = {
+            {"message", "Countries border visibility toggled"},
+            {"isCountriesBorderVisible", *isCountriesBorderVisible}
+        };
+        res.set_content(response.dump(), "application/json");
+        });
+
+    svr.Get("/GetCountriesBorderVisibility", [this](const httplib::Request& req, httplib::Response& res) {
+        json response = {
+            {"isCountriesBorderVisible", *isCountriesBorderVisible}
+        };
+        res.set_content(response.dump(), "application/json");
         });
 
     svr.Post("/ShowTrajectory", [](const httplib::Request& req, httplib::Response& res) {
@@ -78,9 +89,9 @@ void HttpServer::setupEndpoints() {
     svr.Post("/RotateCamera", [](const httplib::Request& req, httplib::Response& res) {
         json data = json::parse(req.body);
 
-        float angleX = data.value("AngleX", 0.0f);
-        float angleY = data.value("AngleY", 0.0f);
-        float angleZ = data.value("AngleZ", 0.0f);
+        float angleX = data.value("angleX", 0.0f);
+        float angleY = data.value("angleY", 0.0f);
+        float angleZ = data.value("angleZ", 0.0f);
         rotateCamera(angleX, angleY, angleZ);
 
         res.set_content(json{ {"message", "Camera rotated"} }.dump(), "application/json");
@@ -96,6 +107,8 @@ void HttpServer::setupEndpoints() {
         float speedY = 2.2;
         float speedZ = 3.3;
         std::string country = "USA";
+
+        std::cout << "Getting starlink info" << std::endl;
 
         json response = {
             {"id", id},
