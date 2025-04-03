@@ -7,7 +7,7 @@ Starlink::Starlink(const Satellite& satelliteInfo, const std::tm& local_time)
 {
     libsgp4::Vector position = eci.Position();
     libsgp4::Vector velocity = eci.Velocity();
-    std::cout << "Sattelite name: " << satelliteInfo.satname << std::endl;
+    std::cout << "Satellite name: " << satelliteInfo.satname << std::endl;
     std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
     std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
 
@@ -79,7 +79,7 @@ void Starlink::createTrajectoryLine() {
         float longitude = geodetic.longitude * (180.0f / M_PI);
         VertexPosOnly vertex;
         vertex.position = changeCoordsToSphere(latitude, longitude, radius);
-        trajectoryLine.push_back(vertex);
+        trajectoryLine[i] = vertex;
     }
 }
 
