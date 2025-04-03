@@ -34,13 +34,14 @@ private:
 public:
     VBO(float* vertices, GLsizeiptr size, const std::vector<VertexAttrib>& attribs);
     VBO(const std::vector<Vertex>& vertices);
-    VBO(const std::vector<VertexPosOnly>& vertices);
+    VBO(const std::vector<VertexPosOnly>& vertices, bool dynamicallyUpdated);
     ~VBO();
     void Bind();
     void Unbind();
     void AddVertexStructAttribs();
     void SetAttribPointers();
     void SetAttribPointers(const std::vector<VertexAttrib>& attribs);
+    void UpdateData(const std::vector<VertexPosOnly>& vertices);
 };
 
 #endif // !VBO_H

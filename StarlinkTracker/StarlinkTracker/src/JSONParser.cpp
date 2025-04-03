@@ -38,7 +38,7 @@ PrimitiveType JSONParser::getPrimitiveType(const nlohmann::json& parsedData)
 }
 glm::vec3 JSONParser::changeCoordsToSphere(float lon, float lat, float radius) {
     float theta = lon * M_PI / 180.0f;
-    float phi = (lat + 90.0f) * M_PI / 180.0f;
+    float phi = (90.0f - lat) * M_PI / 180.0f;
     float x = radius * sin(phi) * cos(theta);
     float y = radius * cos(phi);
     float z = radius * sin(phi) * sin(theta);
@@ -117,25 +117,19 @@ void JSONParser::ParseJSONSattelite(const std::string& satData, std::vector<Sate
 
             if (parsedData["tle"].is_string()) {
                 std::string tle = parsedData["tle"].get<std::string>();
-
+                if (tle.empty())
+                {
+                    std::cout << "[ERROR] TLE field is empty!" << std::endl;
+                    return;
+                }
                 size_t splitPos = tle.find("\r\n");
                 if (splitPos != std::string::npos) {
                     satellite.tleLine1 = tle.substr(0, splitPos);
                     satellite.tleLine2 = tle.substr(splitPos + 2);
                 }
-                std::cout << satellite.satname << std::endl;
-                std::cout << satellite.tleLine1 << std::endl;
-                std::cout << satellite.tleLine2 << std::endl;
-
-                libsgp4::SGP4 sgp4(libsgp4::Tle(satellite.satname, satellite.tleLine1, satellite.tleLine2));
-                libsgp4::DateTime dt(2025, 3, 17, 20, 0, 0);
-                libsgp4::Eci eci = sgp4.FindPosition(dt);
-                libsgp4::Vector position = eci.Position();
-                libsgp4::Vector velocity = eci.Velocity();
-
-                std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
-                std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
-
+                else {
+                    std::cout << "[ERROR] TLE line separator not found!" << std::endl;
+                }
                 satellites.push_back(satellite);
             }
             else {

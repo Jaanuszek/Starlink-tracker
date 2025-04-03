@@ -6,20 +6,27 @@ VBO::VBO(float* vertices, GLsizeiptr size, const std::vector<VertexAttrib>& attr
     glBindBuffer(GL_ARRAY_BUFFER, ID);
     glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
     Unbind();
-    //SetAttribPointers();
 }
 
 VBO::VBO(const std::vector<Vertex>& vertices) {
     glGenBuffers(1, &ID);
     glBindBuffer(GL_ARRAY_BUFFER, ID);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-    //AddVertexStructAttribs();
 }
 
-VBO::VBO(const std::vector<VertexPosOnly>& vertices) {
-    glGenBuffers(1, &ID);
-    glBindBuffer(GL_ARRAY_BUFFER, ID);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), vertices.data(), GL_STATIC_DRAW);
+VBO::VBO(const std::vector<VertexPosOnly>& vertices, bool dynamicallyUpdated) {
+    if (dynamicallyUpdated == false)
+    {
+        glGenBuffers(1, &ID);
+        glBindBuffer(GL_ARRAY_BUFFER, ID);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), vertices.data(), GL_STATIC_DRAW);
+    }
+    else
+    {
+        glGenBuffers(1, &ID);
+        glBindBuffer(GL_ARRAY_BUFFER, ID);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), nullptr, GL_DYNAMIC_DRAW);
+    }
 }
 
 VBO::~VBO() {
@@ -56,4 +63,10 @@ void VBO::SetAttribPointers(const std::vector<VertexAttrib>& attribs) {
         glEnableVertexAttribArray(attribute.index);
         glVertexAttribPointer(attribute.index, attribute.size, attribute.type, attribute.normalized, attribute.stride, attribute.pointer);
     }
+}
+
+void VBO::UpdateData(const std::vector<VertexPosOnly>& vertices) {
+    Bind();
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(VertexPosOnly), vertices.data());
+    Unbind();
 }

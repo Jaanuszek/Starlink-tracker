@@ -1,22 +1,20 @@
 #include <iostream>
-#include <fstream>  
+#include <fstream>
 #include <string>
+#include <chrono>
 #include <curl/curl.h>
 #include <json.hpp>
-#include <assimp/Importer.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "include/Window.h"
 #include "include/Camera.h"
 #include "include/Shader.h"
 #include "include/fetchApi.h"
 #include "include/Mesh.h"
 #include "include/Models/Sphere.h"
+#include "include/Models/Starlink.h"
 #include "include/JSONParser.h"
-#include <assimp/Importer.hpp>
 #include "include/Texture.h"
 #include "include/HttpServer.h"
+#include "include/Model.h"
 
 int width = 800;
 int height = 600;
@@ -30,61 +28,8 @@ float rotationSpeed = 0.05f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+
 bool isCountriesBorderVisible = false;
-
-std::vector<Vertex> ver = {
-    {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.5f, 1.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}}
-};
-std::vector<unsigned int> ind = { 0, 1, 2 ,3 , 1, 2 };
-
-bool isPointInTriangle(float px, float py, glm::mat4 transform) {
-    glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
-    glm::vec4 v2 = transform * glm::vec4(ver[1].position, 1.0f);
-    glm::vec4 v3 = transform * glm::vec4(ver[2].position, 1.0f);
-
-    float x1 = v1.x, y1 = v1.y;
-    float x2 = v2.x, y2 = v2.y;
-    float x3 = v3.x, y3 = v3.y;
-
-    float area = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
-    float sign = area < 0 ? -1.0f : 1.0f;
-
-    float s = sign * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
-    float t = sign * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
-
-    return s > 0 && t > 0 && (s + t) < 2 * sign * area;
-}
-
-
-bool isPointInRectangle(float px, float py, glm::mat4 transform)
-{
-    glm::vec4 v1 = transform * glm::vec4(ver[0].position, 1.0f);
-    glm::vec4 v2 = transform * glm::vec4(ver[1].position, 1.0f);
-    glm::vec4 v3 = transform * glm::vec4(ver[2].position, 1.0f);
-    glm::vec4 v4 = transform * glm::vec4(ver[3].position, 1.0f);
-
-    float x1 = v1.x, y1 = v1.y;
-    float x2 = v2.x, y2 = v2.y;
-    float x3 = v3.x, y3 = v3.y;
-    float x4 = v4.x, y4 = v4.y;
-
-    float area1 = 0.5f * (-y2 * x3 + y1 * (-x2 + x3) + x1 * (y2 - y3) + x2 * y3);
-    float sign1 = area1 < 0 ? -1.0f : 1.0f;
-
-    float s1 = sign1 * (y1 * x3 - x1 * y3 + (y3 - y1) * px + (x1 - x3) * py);
-    float t1 = sign1 * (x1 * y2 - y1 * x2 + (y1 - y2) * px + (x2 - x1) * py);
-
-    float area2 = 0.5f * (-y3 * x4 + y1 * (-x3 + x4) + x1 * (y3 - y4) + x3 * y4);
-    float sign2 = area2 < 0 ? -1.0f : 1.0f;
-
-    float s2 = sign2 * (y1 * x4 - x1 * y4 + (y4 - y1) * px + (x1 - x4) * py);
-    float t2 = sign2 * (x1 * y3 - y1 * x3 + (y1 - y3) * px + (x3 - x1) * py);
-
-    return (s1 > 0 && t1 > 0 && (s1 + t1) < 2 * sign1 * area1) || (s2 > 0 && t2 > 0 && (s2 + t2) < 2 * sign2 * area2);
-}
 
 void renderSatelliteDataImGui() {
     ImGui::Begin("Satellite Data");
@@ -132,6 +77,11 @@ void renderSatelliteDataImGui() {
 int main() {
     Window mainWindow = Window(800, 600);
     mainWindow.Initialize();
+    
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm local_time;
+    localtime_s(&local_time, &now_c);
 
     std::string API_KEY;
     std::fstream file("apiKey.txt");
@@ -144,27 +94,40 @@ int main() {
         return -1;
     }
 
-    std::string SAT_ID = "25544";  // For example, ISS (International Space Station)
-    std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
-    std::string satData;
+    std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
+    std::map<std::string, std::string> satelitesData;
+
     {
-        // zrobilem scope zeby sie destruktor wywolal i zamknal curla
         fetchApi satelliteDataAPI;
-        satelliteDataAPI.fetchDataFromAPI(url, satData);
+        for (const auto& SAT_ID : satIDs) {
+            std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
+            std::string satData;
+            satelliteDataAPI.fetchDataFromAPI(url, satData);
+            satelitesData[SAT_ID] = satData;
+        }
     }
+
+    Model starlinkModel("assets/Models/starlink/starlink.obj");
+
     JSONParser jsonParser;
-    JSONParser::ParseJSONSattelite(satData, satellites);
-    jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.51f);
+    for (auto& [satID, satData] : satelitesData) {
+        JSONParser::ParseJSONSattelite(satData, satellites);
+    }
+    jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.50f);
     {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
 
-        Mesh mesh(ver, ind, ".\\assets\\earthMap.png");
         Sphere sphere(100, 100, 0.5f);
-        std::vector<Vertex> SphereVertices = sphere.getVertices();
+        std::vector<Vertex> SphereVertices = sphere.getVertices();  
         std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
 
-        // Drawing countries on map
+        std::vector<std::unique_ptr<Starlink>> starlinks;
+        for (auto& sat : satellites) {
+            starlinks.push_back(std::make_unique<Starlink>(sat, local_time));
+        }
+
+        // Coordinates for drawing borders on the sphere
         std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
 
         std::vector<int> countriesOffsets; // offset for each country
@@ -183,23 +146,45 @@ int main() {
         // Set shader from a file
         Shader shader("shaders/basicShader.shader");
         Shader shaderBorders("shaders/countriesBorderShader.shader");
+        Shader starlinkShader("shaders/countriesBorderShader.shader"); //temporary shader
+        Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
 
         glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
-        earthModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); //mirror reflection
-        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // rotate 180 degrees to match the borders
         earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees to change coordinates upside down 
         glm::mat4 bordersModel = glm::mat4(1.0f);
-        bordersModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f)); // mirror reflection
-        bordersModel = glm::rotate(bordersModel, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees
+        bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
         HttpServer server = HttpServer(&isCountriesBorderVisible);
         server.start();
 
+        GLfloat simulationTime = 0.0f;
+
+        // for FPS counter
+        double previousTime = 0.0;
+        double currentTime = 0.0;
+        double timeDiff;
+        unsigned int frameCounter = 0;
+        float FPS = 0.0f;
+
+        // Counting time for trajectory line
+        auto lastTimeChrono = std::chrono::high_resolution_clock::now();
+
         while (!mainWindow.ShouldClose()) {
+            auto currTime = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<float> elapsed = currTime - lastTimeChrono;
+
             GLfloat now = glfwGetTime();
             deltaTime = now - lastTime;
             lastTime = now;
+
+            // FPS counter, it work simillar to deltaTime, but a little bit different. That's why we need different variables for that
+            currentTime = glfwGetTime();
+            timeDiff = currentTime - previousTime;
+            frameCounter++;
+            FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
+
+            simulationTime += deltaTime; // 30.0f is the speed of the simulation
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
@@ -207,7 +192,7 @@ int main() {
             mainWindow.ToggleCursorVisibility();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_CULL_FACE);
-            glCullFace(GL_BACK);
+            glCullFace(GL_FRONT);
             rotationAngle += rotationSpeed;
             glm::mat4 View = glm::mat4(1.0f);
             View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -234,8 +219,30 @@ int main() {
                 CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
             }
 
-            //Jak chcesz wrocic do tego tr�jk�ta/ prostok�ta, to zakomentuj wy�sz� linijke i odkomunetuj to na dole
-            //mesh.Draw();
+            for (auto& starlink : starlinks) {
+                starlinkShader.useShaderProgram();
+                starlinkShader.setUniformMat4fv("projection", projection);
+                starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
+                starlinkShader.setUniformMat4fv("model", starlink->getModelMatrix());
+                // Updating Starlink position
+                starlink->UpdatePosition(simulationTime);
+                // Drawing Starlink model
+                starlinkModel.DrawModel();
+                // Drawing trajectory
+                starlinkTrajectoryShader.useShaderProgram();
+                starlinkTrajectoryShader.setUniformMat4fv("projection", projection);
+                starlinkTrajectoryShader.setUniformMat4fv("view", camera.GetViewMatrix());
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
+                starlinkTrajectoryShader.setUniformMat4fv("model", model);
+                starlinkTrajectoryShader.setUniformVec4f("color", starlink->getTrajectoryLineColor());
+                // saving starlink position in vector every 0.1 seconds
+                if (elapsed.count() > 0.1f){
+                    starlink->saveStarlinkPositionInVector();
+                    lastTimeChrono = currTime;
+                }
+                starlink->DrawTrajectory();
+            }
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();

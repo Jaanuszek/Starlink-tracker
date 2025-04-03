@@ -7,6 +7,10 @@
 #include <map>
 #include <fstream>
 #include <functional>
+#include "CoordGeodetic.h"
+#include "Eci.h"
+#include "DateTime.h"
+#include "Tle.h"
 #include "SGP4.h"
 #include "glm/glm.hpp"
 #include "VBO.h" // to have access to Vertex struct
@@ -19,6 +23,9 @@ struct Satellite {
     int transactionscount;
     std::string tleLine1;
     std::string tleLine2;
+    double latitude;
+    double longitude;
+    double altitude;
 };
 
 struct Country {
@@ -59,13 +66,13 @@ class JSONParser
 private:
     std::map<Country, PrimitiveData> countriesMap;
     PrimitiveType getPrimitiveType(const nlohmann::json& parsedData);
-    glm::vec3 changeCoordsToSphere(float lon, float lat, float radius);
     std::map<unsigned int, std::vector<VertexPosOnly>> getVertex(const nlohmann::json& parsedData, PrimitiveType primType, float radius);
 public:
     JSONParser();
     ~JSONParser();
     static void ParseJSONSattelite(const std::string& satData, std::vector<Satellite>& satellites);
     void ParseGeoJSON(const char* pathToGeoJSON, float radius);
+    glm::vec3 changeCoordsToSphere(float lon, float lat, float radius);
     const std::map<Country, PrimitiveData>& getCountries() { return countriesMap; }
 };
 #endif
