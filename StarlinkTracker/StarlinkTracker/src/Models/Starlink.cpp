@@ -63,6 +63,7 @@ glm::vec3 Starlink::changeCoordsToSphere(float lon, float lat, float radius)
     return { x, y, z };
 }
 
+// We dont use this function, but I will keep it here for now
 void Starlink::createTrajectoryLine() {
     float period; // in seconds
     // 6378 is only radius of equator. In case of any problems with trajectory line, get back here
