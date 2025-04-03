@@ -184,7 +184,8 @@ int main() {
             frameCounter++;
             FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
 
-            simulationTime += deltaTime; // 30.0f is the speed of the simulation
+            // You can speed up the starlinks here
+            simulationTime += deltaTime * 30.0f; // 30.0f is the speed of the simulation
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
