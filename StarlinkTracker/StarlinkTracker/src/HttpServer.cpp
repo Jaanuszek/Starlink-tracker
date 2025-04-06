@@ -3,7 +3,16 @@
 
 using json = nlohmann::json;
 
-HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr) : isCountriesBorderVisible(isCountriesBorderVisiblePtr) {}
+HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr,
+    std::vector<std::unique_ptr<Starlink>>* starlinksPtr,
+    std::string apiKey,
+    std::tm localTimeRef)
+    : isCountriesBorderVisible(isCountriesBorderVisiblePtr),
+    starlinks(starlinksPtr),
+    apiKey(apiKey),
+    localTime(localTimeRef)
+{
+}
 
 HttpServer::~HttpServer() {
     stop();
@@ -16,16 +25,32 @@ void HttpServer::setupEndpoints() {
         {"Access-Control-Allow-Headers", "Content-Type"}
         });
 
-    svr.Post("/LoadStarlinks", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/LoadStarlinks", [this](const httplib::Request& req, httplib::Response& res) {
         json data = json::parse(req.body);
 
         if (data.contains("starlinkIds") && data["starlinkIds"].is_array()) {
             std::vector<int> starlinkIds = data["starlinkIds"];
+
+            fetchApi satelliteDataAPI;
+            JSONParser jsonParser;
+            std::vector<Satellite> tempSatellites;
+
             for (int id : starlinkIds) {
-                std::cout << "Loading Starlink with ID: " << id << std::endl;
+                std::string satID = std::to_string(id);
+                std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + satID + "&apiKey=" + apiKey;
+                std::string satData;
+                satelliteDataAPI.fetchDataFromAPI(url, satData);
+
+                if (!satData.empty()) {
+                    JSONParser::ParseJSONSattelite(satData, tempSatellites);
+                }
             }
 
-            res.set_content(json{ {"message", "Loaded Starlinks"} }.dump(), "application/json");
+            for (auto& sat : tempSatellites) {
+                starlinks->push_back(std::make_unique<Starlink>(sat, localTime));
+            }
+
+            res.set_content(json{ {"message", "Starlinks loaded successfully"}, {"count", tempSatellites.size()} }.dump(), "application/json");
         }
         else {
             res.status = 400;
