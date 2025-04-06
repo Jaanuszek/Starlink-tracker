@@ -97,22 +97,9 @@ int main() {
     std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
     std::map<std::string, std::string> satelitesData;
 
-    {
-        fetchApi satelliteDataAPI;
-        for (const auto& SAT_ID : satIDs) {
-            std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
-            std::string satData;
-            satelliteDataAPI.fetchDataFromAPI(url, satData);
-            satelitesData[SAT_ID] = satData;
-        }
-    }
-
     Model starlinkModel("assets/Models/starlink/starlink.obj");
 
     JSONParser jsonParser;
-    for (auto& [satID, satData] : satelitesData) {
-        JSONParser::ParseJSONSattelite(satData, satellites);
-    }
     jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.50f);
     {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
@@ -121,11 +108,6 @@ int main() {
         std::vector<Vertex> SphereVertices = sphere.getVertices();
         std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
-
-        std::vector<std::unique_ptr<Starlink>> starlinks;
-        for (auto& sat : satellites) {
-            starlinks.push_back(std::make_unique<Starlink>(sat, local_time));
-        }
 
         // Coordinates for drawing borders on the sphere
         std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
@@ -155,7 +137,8 @@ int main() {
         glm::mat4 bordersModel = glm::mat4(1.0f);
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
-        HttpServer server = HttpServer(&isCountriesBorderVisible);
+        std::vector<std::unique_ptr<Starlink>> starlinks;
+        HttpServer server(&isCountriesBorderVisible, &starlinks, API_KEY, local_time);
         server.start();
 
         GLfloat simulationTime = 0.0f;
