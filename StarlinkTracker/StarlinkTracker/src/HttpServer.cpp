@@ -8,7 +8,6 @@ HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr,
     std::string apiKey,
     std::tm localTimeRef)
     : isCountriesBorderVisible(isCountriesBorderVisiblePtr),
-    starlinks(starlinksPtr),
     apiKey(apiKey),
     localTime(localTimeRef)
 {
@@ -33,7 +32,6 @@ void HttpServer::setupEndpoints() {
 
             fetchApi satelliteDataAPI;
             JSONParser jsonParser;
-            std::vector<Satellite> tempSatellites;
 
             for (int id : starlinkIds) {
                 std::string satID = std::to_string(id);
@@ -42,15 +40,11 @@ void HttpServer::setupEndpoints() {
                 satelliteDataAPI.fetchDataFromAPI(url, satData);
 
                 if (!satData.empty()) {
-                    JSONParser::ParseJSONSattelite(satData, tempSatellites);
+                    JSONParser::ParseJSONSattelite(satData, satellites);
                 }
             }
 
-            for (auto& sat : tempSatellites) {
-                starlinks->push_back(std::make_unique<Starlink>(sat, localTime));
-            }
-
-            res.set_content(json{ {"message", "Starlinks loaded successfully"}, {"count", tempSatellites.size()} }.dump(), "application/json");
+            res.set_content(json{ {"message", "Starlinks loaded successfully"}, {"count", satellites.size()} }.dump(), "application/json");
         }
         else {
             res.status = 400;

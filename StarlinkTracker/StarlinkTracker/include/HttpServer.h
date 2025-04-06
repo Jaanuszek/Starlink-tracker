@@ -15,6 +15,12 @@ public:
 
     void start();
     void stop();
+    std::vector<Satellite>& getSatellitesInfo() { 
+        return satellites;
+    }
+    void clearSateliteVector() {
+        satellites.clear();
+    }
 
 private:
     void setupEndpoints();
@@ -23,7 +29,7 @@ private:
     httplib::Server svr;
 
     bool* isCountriesBorderVisible;
-    std::vector<std::unique_ptr<Starlink>>* starlinks;
+    std::vector<Satellite> satellites;
     std::string apiKey;
     std::tm localTime;
 };

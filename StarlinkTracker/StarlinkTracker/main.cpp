@@ -19,7 +19,6 @@
 int width = 800;
 int height = 600;
 
-std::vector<Satellite> satellites;
 bool showSatelliteWindow = false;
 
 float rotationAngle = 0.0f;
@@ -30,49 +29,6 @@ GLfloat lastTime = 0.0f;
 
 
 bool isCountriesBorderVisible = false;
-
-void renderSatelliteDataImGui() {
-    ImGui::Begin("Satellite Data");
-
-    if (!satellites.empty()) {
-        ImGui::Text("Satellite Information");
-        ImGui::Separator();
-
-        if (ImGui::BeginTable("SatelliteDataTable", 5, ImGuiTableFlags_Borders)) {
-            ImGui::TableSetupColumn("SatID");
-            ImGui::TableSetupColumn("Name");
-            ImGui::TableSetupColumn("Transaction Count");
-            ImGui::TableSetupColumn("TLE Line 1");
-            ImGui::TableSetupColumn("TLE Line 2");
-
-            ImGui::TableHeadersRow();
-
-            for (const auto& sat : satellites) {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", sat.satid);
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", sat.satname.c_str());
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", sat.transactionscount);
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", sat.tleLine1.c_str());
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", sat.tleLine2.c_str());
-            }
-            ImGui::EndTable();
-        }
-    }
-    else {
-        ImGui::Text("No satellite data available.");
-    }
-
-    if (ImGui::Button("Close")) {
-        showSatelliteWindow = false;
-    }
-
-    ImGui::End();
-}
 
 int main() {
     Window mainWindow = Window(800, 600);
@@ -152,8 +108,17 @@ int main() {
 
         // Counting time for trajectory line
         auto lastTimeChrono = std::chrono::high_resolution_clock::now();
-
+        std::vector<Satellite> SatellitesInfoVec;
         while (!mainWindow.ShouldClose()) {
+
+            SatellitesInfoVec = server.getSatellitesInfo();
+            if (!SatellitesInfoVec.empty()) {
+                for (auto& satelliteInfo : SatellitesInfoVec) {
+                    starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                }
+                server.clearSateliteVector();
+            }
+
             auto currTime = std::chrono::high_resolution_clock::now();
             std::chrono::duration<float> elapsed = currTime - lastTimeChrono;
 
@@ -231,11 +196,6 @@ int main() {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-
-            if (showSatelliteWindow) {
-                renderSatelliteDataImGui();
-            }
-
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

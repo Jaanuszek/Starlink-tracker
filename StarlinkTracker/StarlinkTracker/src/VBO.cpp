@@ -25,7 +25,7 @@ VBO::VBO(const std::vector<VertexPosOnly>& vertices, bool dynamicallyUpdated) {
     {
         GLCall(glGenBuffers(1, &ID));
         GLCall(glBindBuffer(GL_ARRAY_BUFFER, ID));
-        GLCall(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), nullptr, GL_DYNAMIC_DRAW));
+        GLCall(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VertexPosOnly), vertices.data(), GL_DYNAMIC_DRAW));
     }
 }
 
