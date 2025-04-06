@@ -10,7 +10,7 @@
 
 class HttpServer {
 public:
-    HttpServer(bool* isCountriesBorderVisiblePtr, std::vector<std::unique_ptr<Starlink>>* starlinksPtr, std::string apiKey, std::tm localTimeRef);
+    HttpServer(bool* isCountriesBorderVisiblePtr, std::string apiKey, std::tm localTimeRef);
     ~HttpServer();
 
     void start();

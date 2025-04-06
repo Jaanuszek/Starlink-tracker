@@ -4,7 +4,6 @@
 using json = nlohmann::json;
 
 HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr,
-    std::vector<std::unique_ptr<Starlink>>* starlinksPtr,
     std::string apiKey,
     std::tm localTimeRef)
     : isCountriesBorderVisible(isCountriesBorderVisiblePtr),

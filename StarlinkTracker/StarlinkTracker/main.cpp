@@ -94,7 +94,7 @@ int main() {
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
         std::vector<std::unique_ptr<Starlink>> starlinks;
-        HttpServer server(&isCountriesBorderVisible, &starlinks, API_KEY, local_time);
+        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
         server.start();
 
         GLfloat simulationTime = 0.0f;
