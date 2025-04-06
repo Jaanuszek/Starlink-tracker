@@ -38,21 +38,21 @@ Mesh::~Mesh()
 void Mesh::Draw(GLenum primitiveType)
 {
     vao.Bind();
-    glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0);
+    GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
     vao.Unbind();
 }
 
 void Mesh::DrawWithoutEBO(GLenum primitiveType, unsigned int count)
 {
     vao.Bind();
-    glDrawArrays(primitiveType, 0, count);
+    GLCall(glDrawArrays(primitiveType, 0, count));
     vao.Unbind();
 }
 
 void Mesh::DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndices, std::vector<int> counts, GLsizei drawCount)
 {
     vao.Bind();
-    glMultiDrawArrays(primitiveType, firstIndices.data(), counts.data(), drawCount);
+    GLCall(glMultiDrawArrays(primitiveType, firstIndices.data(), counts.data(), drawCount));
     vao.Unbind();
 }
 

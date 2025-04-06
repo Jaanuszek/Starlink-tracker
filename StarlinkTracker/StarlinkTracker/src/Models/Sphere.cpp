@@ -30,9 +30,6 @@ void Sphere::CreateSphere(int sectorCount, int stackCount, float radius)
 			float x = cos(theta) * sin(phi) * radius;
 			float y = cos(phi) * radius;
 			float z = sin(theta) * sin(phi) * radius;
-			//float x = radius * cos(phi) * cos(theta);
-			//float y = radius * sin(phi);
-			//float z = radius * cos(phi) * sin(theta);
 			vertexIterator->position = glm::vec3(x, y, z);
 			vertexIterator->normal = glm::vec3(x, y, z);
 			vertexIterator->texPos = glm::vec2(U, V);

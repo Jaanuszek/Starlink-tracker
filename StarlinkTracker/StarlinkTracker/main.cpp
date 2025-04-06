@@ -33,7 +33,7 @@ bool isCountriesBorderVisible = false;
 
 void renderSatelliteDataImGui() {
     ImGui::Begin("Satellite Data");
-    
+
     if (!satellites.empty()) {
         ImGui::Text("Satellite Information");
         ImGui::Separator();
@@ -77,7 +77,7 @@ void renderSatelliteDataImGui() {
 int main() {
     Window mainWindow = Window(800, 600);
     mainWindow.Initialize();
-    
+
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::tm local_time;
@@ -118,7 +118,7 @@ int main() {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
 
         Sphere sphere(100, 100, 0.5f);
-        std::vector<Vertex> SphereVertices = sphere.getVertices();  
+        std::vector<Vertex> SphereVertices = sphere.getVertices();
         std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
 
@@ -198,7 +198,7 @@ int main() {
             glm::mat4 View = glm::mat4(1.0f);
             View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
             View = glm::rotate(View, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-            
+
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
             //Use shader program (use this specific shader)
@@ -238,7 +238,7 @@ int main() {
                 starlinkTrajectoryShader.setUniformMat4fv("model", model);
                 starlinkTrajectoryShader.setUniformVec4f("color", starlink->getTrajectoryLineColor());
                 // saving starlink position in vector every 0.1 seconds
-                if (elapsed.count() > 0.1f){
+                if (elapsed.count() > 0.1f) {
                     starlink->saveStarlinkPositionInVector();
                     lastTimeChrono = currTime;
                 }
@@ -252,7 +252,7 @@ int main() {
             if (showSatelliteWindow) {
                 renderSatelliteDataImGui();
             }
-              
+
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

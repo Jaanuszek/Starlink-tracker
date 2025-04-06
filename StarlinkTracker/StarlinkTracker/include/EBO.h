@@ -4,6 +4,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <vector>
+#include "DebugLogs.h"
 
 class EBO 
 {

@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 #include <string>
 #include "stb/stb_image.h"
+#include "DebugLogs.h"
 
 class Texture {
 private:
