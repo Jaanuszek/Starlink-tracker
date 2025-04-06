@@ -245,6 +245,7 @@
     <ClInclude Include="external\libsgp4\Util.h" />
     <ClInclude Include="external\libsgp4\Vector.h" />
     <ClInclude Include="external\stb\stb_image.h" />
+    <ClInclude Include="include\DebugLogs.h" />
     <ClInclude Include="include\HttpServer.h" />
     <ClInclude Include="include\EBO.h" />
     <ClInclude Include="include\fetchApi.h" />

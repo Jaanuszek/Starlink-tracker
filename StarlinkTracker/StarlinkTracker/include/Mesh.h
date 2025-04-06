@@ -9,6 +9,7 @@
 #include "EBO.h"
 #include "Texture.h"
 #include "JSONParser.h"
+#include "DebugLogs.h"
 
 // TODO add camera and textures here
 
@@ -20,6 +21,7 @@ private:
     EBO ebo;
     Texture texture;
 public:
+    Mesh() : vao(), vbo(), ebo(), texture() {}
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
     Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);

@@ -2,7 +2,7 @@
 
 Starlink::Starlink(const Satellite& satelliteInfo, const std::tm& local_time)
     : satelliteInfo(satelliteInfo), sgp4(libsgp4::Tle(satelliteInfo.satname, satelliteInfo.tleLine1, satelliteInfo.tleLine2)),
-    startTime(1900 + local_time.tm_year, 1 + local_time.tm_mon, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec), 
+    startTime(1900 + local_time.tm_year, 1 + local_time.tm_mon, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec),
     eci(sgp4.FindPosition(startTime)), geodetic(eci.ToGeodetic())
 {
     libsgp4::Vector position = eci.Position();

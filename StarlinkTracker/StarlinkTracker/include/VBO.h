@@ -7,6 +7,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "JSONParser.h"
+#include "DebugLogs.h"
 
 struct VertexPosOnly; // Forward declaration
 
@@ -32,6 +33,7 @@ private:
     unsigned int ID;
     std::vector<VertexAttrib> attributes;
 public:
+    VBO() : ID(0) {}
     VBO(float* vertices, GLsizeiptr size, const std::vector<VertexAttrib>& attribs);
     VBO(const std::vector<Vertex>& vertices);
     VBO(const std::vector<VertexPosOnly>& vertices, bool dynamicallyUpdated);
