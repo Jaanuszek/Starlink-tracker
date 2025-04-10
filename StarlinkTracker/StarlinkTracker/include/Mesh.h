@@ -23,6 +23,7 @@ private:
 public:
     Mesh() : vao(), vbo(), ebo(), texture() {}
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
+    Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, std::vector<textureStruct>& textures);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
     Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
     ~Mesh();

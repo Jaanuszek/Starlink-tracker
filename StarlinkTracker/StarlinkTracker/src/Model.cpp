@@ -33,6 +33,8 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
     vertices.reserve(mesh->mNumVertices);
     std::vector<unsigned int> indices;
     indices.reserve(mesh->mNumFaces * 3);
+    std::vector<textureStruct> textures;
+    //textures.reserve()
     // TODO add texture here
     for (unsigned int verticeIndex = 0; verticeIndex < mesh->mNumVertices; verticeIndex++)
     {
@@ -68,8 +70,47 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
         }
     }
     meshes.emplace_back(std::move(vertices), std::move(indices));
+
+    if (mesh->mMaterialIndex >= 0)
+    {
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        std::vector<textureStruct> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        std::vector<textureStruct> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    }
 }
 
+std::vector<textureStruct> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+{
+    std::vector<textureStruct> textures;
+    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+    {
+        aiString str;
+        mat->GetTexture(type, i, &str); //get texture path
+        bool skip = false;
+        for (unsigned int j = 0; j < texturesLoaded.size(); j++)
+        {
+            if (std::strcmp(texturesLoaded[j].path, str.C_Str()) == 0)
+            {
+                textures.push_back(texturesLoaded[j]);
+                skip = true;
+                break;
+            }
+        }
+        if (!skip)
+        {
+            textureStruct texture;
+            texture.ID = Texture::loadTextureFromFile(str.C_Str(), directoryPath);
+            texture.path = str.C_Str();
+            texture.type = typeName;
+            textures.push_back(texture);
+            texturesLoaded.push_back(texture);
+        }
+    }
+    return textures;
+}
+//to do wywalenia raczej
 void Model::createMeshes()
 {
     objectsMeshes.reserve(meshes.size());

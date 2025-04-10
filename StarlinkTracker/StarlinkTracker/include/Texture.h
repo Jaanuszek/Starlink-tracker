@@ -8,6 +8,13 @@
 #include "stb/stb_image.h"
 #include "DebugLogs.h"
 
+struct textureStruct
+{
+    unsigned int ID;
+	const char* path;
+	std::string type;
+};
+
 class Texture {
 private:
 	unsigned int ID;
@@ -19,7 +26,9 @@ public:
 	~Texture();
 
 	void Bind(unsigned int textureIndex);
+    void Bind(unsigned int textureIndex, unsigned int textureID);
 	void Unbind();
+    static unsigned int loadTextureFromFile(const char* path, const std::string& directory);
 };
 
 #endif

@@ -15,6 +15,21 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     texture.Bind(0);
 }
 
+Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, std::vector<textureStruct>& textures)
+{
+    vao.Bind();
+    vbo.Bind();
+    ebo.Bind();
+    vbo.AddVertexStructAttribs();
+    vbo.Unbind();
+    vao.Unbind();
+
+    for (int textureIndex = 0; textureIndex < textures.size(); textureIndex++)
+    {
+        texture.Bind(textureIndex, textures[textureIndex].ID);
+    }
+}
+
 Mesh::Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate)
     : vbo(vertices, dynamicUpdate), ebo(), texture()
 {
