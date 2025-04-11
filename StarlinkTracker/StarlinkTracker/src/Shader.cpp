@@ -86,6 +86,39 @@ unsigned int Shader::CompileShader(GLenum shaderType, const std::string& shader)
 	}
 	return shaderID;
 }
+
+void Shader::setMultipleUniformsFromStruct(const std::vector<shaderUniformData>& uniforms)
+{
+    for (const auto& uniform : uniforms) {
+        setUniformFromStruct(uniform);
+    }
+}
+
+void Shader::setUniformFromStruct(const shaderUniformData& uniform)
+{
+	std::visit([&](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr (std::is_same_v<T, int>) {
+			setUniform1f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, float>) {
+			setUniform1f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, glm::vec3>) {
+			setUniformVec3f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, glm::vec4>) {
+			setUniformVec4f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, glm::mat4>) {
+            setUniformMat4fv(uniform.uniformName, arg); // sprawdzic czy nie powinno tu byc glm::value_ptr(arg)
+		}
+		else {
+			static_assert("Unsupported type");
+		}
+	}, uniform.data);
+}
+
 void Shader::useShaderProgram()
 {
 	GLCall(glUseProgram(shaderProgramID));

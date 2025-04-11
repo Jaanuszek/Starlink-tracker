@@ -163,7 +163,7 @@ int main() {
                 shaderBorders.setUniformMat4fv("projection", projection);
                 shaderBorders.setUniformMat4fv("model", bordersModel);
                 shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
-                shaderBorders.setUniform1i("ourTexture", 0);
+                //shaderBorders.setUniform1i("ourTexture", 0);
 
                 CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
             }

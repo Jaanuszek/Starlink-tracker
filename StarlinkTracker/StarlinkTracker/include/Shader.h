@@ -3,14 +3,34 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
+#include <variant>
+#include <visit>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "DebugLogs.h"
+
+
+enum class uniformType
+{
+    UNIFORM_1D_INT,
+    UNIFORM_1D_FLOAT,
+    UNIFORM_VEC3_FLOAT,
+    UNIFORM_VEC4_FLOAT,
+    UNIFORM_MAT4_FV // float, pointer
+};
+
+struct shaderUniformData
+{
+    uniformType type;
+	std::string uniformName;
+    std::variant<int, float, glm::vec3, glm::vec4, glm::mat4> data;
+};
 
 struct ShaderProgramSource
 {
@@ -30,6 +50,8 @@ public:
 	Shader(const char* pathToShader);
 	~Shader();
 	void useShaderProgram();
+    void setMultipleUniformsFromStruct(const std::vector<shaderUniformData>& uniforms);
+    void setUniformFromStruct(const shaderUniformData& uniform);
 	void setUniform1f(const std::string& name, float value);
 	void setUniform1i(const std::string& name, int value);
 	void setUniformMat4fv(const std::string& name, const glm::mat4& matrix);

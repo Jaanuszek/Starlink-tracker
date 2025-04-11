@@ -15,14 +15,19 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     texture.Bind(0);
 }
 
-Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, std::vector<textureStruct>& textures)
+Mesh::Mesh(meshStruct& meshData)
 {
+    Shader& shader = meshData.shader;
+    std::vector<textureStruct>& textures = meshData.textures;
+    shader.useShaderProgram();
+
     vao.Bind();
     vbo.Bind();
     ebo.Bind();
     vbo.AddVertexStructAttribs();
     vbo.Unbind();
     vao.Unbind();
+
 
     for (int textureIndex = 0; textureIndex < textures.size(); textureIndex++)
     {
