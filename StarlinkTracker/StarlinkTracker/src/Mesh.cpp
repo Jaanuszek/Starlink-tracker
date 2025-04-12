@@ -15,17 +15,20 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     texture.Bind(0);
 }
 
-Mesh::Mesh(meshStruct& meshData)
+Mesh::Mesh(meshStruct& meshData, const std::vector<shaderUniformData>& uniformData) :
+    vbo(meshData.vertices), ebo(meshData.indices), texture()
 {
-    Shader& shader = meshData.shader;
+    //Shader& shader = meshData.shader;
     // dodac ten vector<shaderUniformData> do struktury mesh Struct??
     // Czy dodac to jako kolejny argument tego konstuktora??
     // ALBO dodaæ ten wektor w shaderze, bo w sumie to jest jego dzia³ka
     // trzecia opcja chyba najlepsza
-    std::vector<shaderUniformData> uniformData;
     std::vector<textureStruct>& textures = meshData.textures;
-    shader.useShaderProgram();
-
+    //shader.useShaderProgram();
+    //for (const auto& uniform : uniformData)
+    //{
+    //    shader.updateUniformMap(uniform);
+    //}
     vao.Bind();
     vbo.Bind();
     ebo.Bind();
@@ -85,3 +88,12 @@ void Mesh::UpdateData(const std::vector<VertexPosOnly>& vertices)
 {
     vbo.UpdateData(vertices);
 }
+
+//void Mesh::UpdateShaderUniforms(const std::vector<shaderUniformData>& uniformData)
+//{
+//    // TODO add multiple uniforms update
+//}
+//void Mesh::UpdateShaderUniform(const shaderUniformData& uniformData)
+//{
+//    shader.updateUniformMap(uniformData);
+//}

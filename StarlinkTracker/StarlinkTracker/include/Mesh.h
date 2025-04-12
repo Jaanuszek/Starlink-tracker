@@ -19,7 +19,7 @@ struct meshStruct
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<textureStruct> textures;
-    Shader shader;
+    //Shader shader;
 };
 
 class Mesh
@@ -29,10 +29,11 @@ private:
     VBO vbo;
     EBO ebo;
     Texture texture;
+    //Shader shader;
 public:
     Mesh() : vao(), vbo(), ebo(), texture() {}
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
-    Mesh(meshStruct& meshData);
+    Mesh(meshStruct& meshData, const std::vector<shaderUniformData>& uniformData);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
     Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
     ~Mesh();
@@ -40,6 +41,8 @@ public:
     void DrawWithoutEBO(GLenum primitiveType, unsigned int count);
     void DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndices, std::vector<int> counts, GLsizei drawCount);
     void UpdateData(const std::vector<VertexPosOnly>& vertices);
+    //void UpdateShaderUniforms(const std::vector<shaderUniformData>& uniformData);
+    //void UpdateShaderUniform(const shaderUniformData& uniformData);
 };
 
 #endif

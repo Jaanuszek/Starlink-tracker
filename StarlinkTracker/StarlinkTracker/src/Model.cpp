@@ -69,7 +69,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
             indices.emplace_back(face.mIndices[indiceIndex]);
         }
     }
-    meshes.emplace_back(std::move(vertices), std::move(indices));
+    //meshes.emplace_back(std::move(vertices), std::move(indices));
 
     if (mesh->mMaterialIndex >= 0)
     {
@@ -79,6 +79,8 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
         std::vector<textureStruct> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
+    //objectsMeshes.push_back(vertices, indices, textures);
+    meshStructVector.push_back(meshStruct{ vertices, indices, textures});
 }
 
 std::vector<textureStruct> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
@@ -113,17 +115,37 @@ std::vector<textureStruct> Model::loadMaterialTextures(aiMaterial* mat, aiTextur
 //to do wywalenia raczej
 void Model::createMeshes()
 {
-    objectsMeshes.reserve(meshes.size());
-    for (auto& mesh : meshes)
+    //objectsMeshes.reserve(meshes.size());
+    //for (auto& mesh : meshes)
+    //{
+    //    objectsMeshes.emplace_back(mesh.first, mesh.second, ".\\assets\\earthMap.png");
+    //    std::cout << "Created Mesh" << std::endl;
+    //}
+    //meshes.clear();
+    //meshes.shrink_to_fit();
+    //for (auto& mesh : objectsMeshes)
+    //{
+    //    mesh.Bind();
+    //    mesh.SetAttribPointers();
+    //    mesh.Unbind();
+    //}
+    //std::vector<shaderUniformData> uniformDataBasicShader =
+    //{
+    //    {"projection", glm::mat4(1.0f)},
+    //    {"model", glm::mat4(1.0f)},
+    //    {"view", glm::mat4(1.0f)},
+    //    {"ourTexture", 0}
+    //};
+    // zmienic tu nazwe!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for (auto& mesh : meshStructVector)
     {
-        objectsMeshes.emplace_back(mesh.first, mesh.second, ".\\assets\\earthMap.png");
+        objectsMeshes.emplace_back(mesh, std::vector<shaderUniformData>());
         std::cout << "Created Mesh" << std::endl;
     }
-    meshes.clear();
-    meshes.shrink_to_fit();
 }
 
-Model::Model(const char* pathToModel) {
+Model::Model(const char* pathToModel, const char* pathToShader) : shader{pathToShader}
+{
     loadModel(pathToModel);
     createMeshes();
 }
@@ -132,8 +154,33 @@ Model::~Model() {
 }
 
 void Model::DrawModel() {
+    // jest jajkis problem z tym shaderem co jest w tej klasie
+    //shader.useShaderProgram();
+    shader.useShaderProgramWithUniformSet();
     for (auto& mesh : objectsMeshes)
     {
         mesh.Draw(GL_TRIANGLES);
     }
+}
+void Model::UpdateShaderUniforms(const std::vector<shaderUniformData>& uniformData)
+{
+    //shader.useShaderProgram();
+    for (const auto& uniform : uniformData)
+    {
+        shader.updateUniformMap(uniform);
+    }
+}
+
+void Model::UpdateShaderUniforms(const std::unordered_map<std::string, shaderUniformData>& uniformData)
+{
+    //shader.useShaderProgram();
+    for (const auto& [name, uniform] : uniformData)
+    {
+        shader.updateUniformMap(uniform);
+    }
+}
+
+void Model::UpdateShaderUniform(const shaderUniformData& uniformData)
+{
+    shader.updateUniformMap(uniformData);
 }
