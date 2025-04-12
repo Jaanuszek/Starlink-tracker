@@ -28,7 +28,7 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
 
-bool isCountriesBorderVisible = false;
+bool isCountriesBorderVisible = true;
 
 int main() {
     Window mainWindow = Window(800, 600);
@@ -82,16 +82,30 @@ int main() {
         Mesh CountriesBorderMesh(countriesBorderVertices);
 
         // Set shader from a file
-        Shader shader("shaders/basicShader.shader");
-        Shader shaderBorders("shaders/countriesBorderShader.shader");
-        Shader starlinkShader("shaders/countriesBorderShader.shader"); //temporary shader
-        Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
 
         glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
         earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees to change coordinates upside down 
         glm::mat4 bordersModel = glm::mat4(1.0f);
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
+        std::vector<shaderUniformData> tempVec; // just for debugging purposes, at least for now
+        //shader.useShaderProgram();
+        //// Set uniform matrix in Shader
+        //shader.setUniformMat4fv("projection", projection);
+        //shader.setUniformMat4fv("model", earthModel);
+        //shader.setUniformMat4fv("view", camera.GetViewMatrix());
+        //shader.setUniform1i("ourTexture", 0);
+        std::vector<shaderUniformData> uniformDataBasicShader =
+        {
+            {"projection", projection},
+            {"model", earthModel},
+            {"view", camera.GetViewMatrix()},
+            {"ourTexture", 0}
+        };
+        Shader shader("shaders/basicShader.shader", uniformDataBasicShader);
+        Shader shaderBorders("shaders/countriesBorderShader.shader", tempVec);
+        Shader starlinkShader("shaders/countriesBorderShader.shader", tempVec); //temporary shader
+        Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader", tempVec);
 
         std::vector<std::unique_ptr<Starlink>> starlinks;
         HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
@@ -150,12 +164,14 @@ int main() {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
             //Use shader program (use this specific shader)
-            shader.useShaderProgram();
-            // Set uniform matrix in Shader
-            shader.setUniformMat4fv("projection", projection);
-            shader.setUniformMat4fv("model", earthModel);
-            shader.setUniformMat4fv("view", camera.GetViewMatrix());
-            shader.setUniform1i("ourTexture", 0);
+            // ===================================
+            //shader.useShaderProgram();
+            //// Set uniform matrix in Shader
+            //shader.setUniformMat4fv("projection", projection);
+            //shader.setUniformMat4fv("model", earthModel);
+            //shader.setUniformMat4fv("view", camera.GetViewMatrix());
+            //shader.setUniform1i("ourTexture", 0);
+            shader.setMultipleUniformsFromStruct();
             SphereMesh.Draw(GL_TRIANGLES);
 
             if (isCountriesBorderVisible) {

@@ -1,6 +1,7 @@
 #include "../include/Shader.h"
 
-Shader::Shader(const char* pathToShader) : shaderFilePath(pathToShader), shaderProgramID(0)
+Shader::Shader(const char* pathToShader, const std::vector<shaderUniformData>& uniformData) 
+	: shaderFilePath(pathToShader), shaderProgramID(0), uniformDataVector(uniformData)
 {
 	ShaderProgramSource shaderSource = parseShader(pathToShader);
 	shaderProgramID = CreateShader(shaderSource.vertexShaderSource, shaderSource.fragmentShaderSource);
@@ -87,9 +88,9 @@ unsigned int Shader::CompileShader(GLenum shaderType, const std::string& shader)
 	return shaderID;
 }
 
-void Shader::setMultipleUniformsFromStruct(const std::vector<shaderUniformData>& uniforms)
+void Shader::setMultipleUniformsFromStruct()
 {
-    for (const auto& uniform : uniforms) {
+    for (const auto& uniform : uniformDataVector) {
         setUniformFromStruct(uniform);
     }
 }
@@ -111,6 +112,9 @@ void Shader::setUniformFromStruct(const shaderUniformData& uniform)
 			setUniformVec4f(uniform.uniformName, arg);
 		}
 		else if constexpr (std::is_same_v<T, glm::mat4>) {
+			std::cout << "=======1\n";
+			std::cout << "uniform.uniformName " << uniform.uniformName << std::endl;
+			std::cout << "arg " << typeid(arg).name() << std::endl;
             setUniformMat4fv(uniform.uniformName, arg); // sprawdzic czy nie powinno tu byc glm::value_ptr(arg)
 		}
 		else {
@@ -123,6 +127,13 @@ void Shader::useShaderProgram()
 {
 	GLCall(glUseProgram(shaderProgramID));
 }
+
+void Shader::useShaderProgramWithUniformSet()
+{
+	GLCall(glUseProgram(shaderProgramID));
+	setMultipleUniformsFromStruct();
+}
+
 void Shader::setUniform1f(const std::string& name, float value)
 {
 	GLCall(glUniform1f(glGetUniformLocation(shaderProgramID, name.c_str()), value));
@@ -135,6 +146,10 @@ void Shader::setUniform1i(const std::string& name, int value)
 
 void Shader::setUniformMat4fv(const std::string& name, const glm::mat4& matrix)
 {
+	std::cout << "ID: " << shaderProgramID << std::endl;
+	std::cout << "setUniformMat4f name: " << name.c_str() << std::endl;
+	std::cout << typeid(matrix).name() << std::endl;
+	std::cout << * glm::value_ptr(matrix) << std::endl;
 	GLCall(glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix)));
 }
 

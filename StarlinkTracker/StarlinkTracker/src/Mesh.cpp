@@ -18,6 +18,11 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
 Mesh::Mesh(meshStruct& meshData)
 {
     Shader& shader = meshData.shader;
+    // dodac ten vector<shaderUniformData> do struktury mesh Struct??
+    // Czy dodac to jako kolejny argument tego konstuktora??
+    // ALBO dodaæ ten wektor w shaderze, bo w sumie to jest jego dzia³ka
+    // trzecia opcja chyba najlepsza
+    std::vector<shaderUniformData> uniformData;
     std::vector<textureStruct>& textures = meshData.textures;
     shader.useShaderProgram();
 
