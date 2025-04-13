@@ -3,7 +3,14 @@
 
 using json = nlohmann::json;
 
-HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr) : isCountriesBorderVisible(isCountriesBorderVisiblePtr) {}
+HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr,
+    std::string apiKey,
+    std::tm localTimeRef)
+    : isCountriesBorderVisible(isCountriesBorderVisiblePtr),
+    apiKey(apiKey),
+    localTime(localTimeRef)
+{
+}
 
 HttpServer::~HttpServer() {
     stop();
@@ -16,16 +23,27 @@ void HttpServer::setupEndpoints() {
         {"Access-Control-Allow-Headers", "Content-Type"}
         });
 
-    svr.Post("/LoadStarlinks", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/LoadStarlinks", [this](const httplib::Request& req, httplib::Response& res) {
         json data = json::parse(req.body);
 
         if (data.contains("starlinkIds") && data["starlinkIds"].is_array()) {
             std::vector<int> starlinkIds = data["starlinkIds"];
+
+            fetchApi satelliteDataAPI;
+            JSONParser jsonParser;
+
             for (int id : starlinkIds) {
-                std::cout << "Loading Starlink with ID: " << id << std::endl;
+                std::string satID = std::to_string(id);
+                std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + satID + "&apiKey=" + apiKey;
+                std::string satData;
+                satelliteDataAPI.fetchDataFromAPI(url, satData);
+
+                if (!satData.empty()) {
+                    JSONParser::ParseJSONSattelite(satData, satellites);
+                }
             }
 
-            res.set_content(json{ {"message", "Loaded Starlinks"} }.dump(), "application/json");
+            res.set_content(json{ {"message", "Starlinks loaded successfully"}, {"count", satellites.size()} }.dump(), "application/json");
         }
         else {
             res.status = 400;

@@ -19,7 +19,6 @@
 int width = 800;
 int height = 600;
 
-std::vector<Satellite> satellites;
 bool showSatelliteWindow = false;
 
 float rotationAngle = 0.0f;
@@ -30,49 +29,6 @@ GLfloat lastTime = 0.0f;
 
 
 bool isCountriesBorderVisible = false;
-
-void renderSatelliteDataImGui() {
-    ImGui::Begin("Satellite Data");
-
-    if (!satellites.empty()) {
-        ImGui::Text("Satellite Information");
-        ImGui::Separator();
-
-        if (ImGui::BeginTable("SatelliteDataTable", 5, ImGuiTableFlags_Borders)) {
-            ImGui::TableSetupColumn("SatID");
-            ImGui::TableSetupColumn("Name");
-            ImGui::TableSetupColumn("Transaction Count");
-            ImGui::TableSetupColumn("TLE Line 1");
-            ImGui::TableSetupColumn("TLE Line 2");
-
-            ImGui::TableHeadersRow();
-
-            for (const auto& sat : satellites) {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", sat.satid);
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", sat.satname.c_str());
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", sat.transactionscount);
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", sat.tleLine1.c_str());
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", sat.tleLine2.c_str());
-            }
-            ImGui::EndTable();
-        }
-    }
-    else {
-        ImGui::Text("No satellite data available.");
-    }
-
-    if (ImGui::Button("Close")) {
-        showSatelliteWindow = false;
-    }
-
-    ImGui::End();
-}
 
 int main() {
     Window mainWindow = Window(800, 600);
@@ -97,22 +53,9 @@ int main() {
     std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
     std::map<std::string, std::string> satelitesData;
 
-    {
-        fetchApi satelliteDataAPI;
-        for (const auto& SAT_ID : satIDs) {
-            std::string url = "https://api.n2yo.com/rest/v1/satellite/tle/" + SAT_ID + "&apiKey=" + API_KEY;
-            std::string satData;
-            satelliteDataAPI.fetchDataFromAPI(url, satData);
-            satelitesData[SAT_ID] = satData;
-        }
-    }
-
     Model starlinkModel("assets/Models/starlink/starlink.obj");
 
     JSONParser jsonParser;
-    for (auto& [satID, satData] : satelitesData) {
-        JSONParser::ParseJSONSattelite(satData, satellites);
-    }
     jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.50f);
     {
         Camera camera = Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
@@ -121,11 +64,6 @@ int main() {
         std::vector<Vertex> SphereVertices = sphere.getVertices();
         std::vector<unsigned int> SphereIndices = sphere.getIndices();
         Mesh SphereMesh(SphereVertices, SphereIndices, ".\\assets\\earthMap.png");
-
-        std::vector<std::unique_ptr<Starlink>> starlinks;
-        for (auto& sat : satellites) {
-            starlinks.push_back(std::make_unique<Starlink>(sat, local_time));
-        }
 
         // Coordinates for drawing borders on the sphere
         std::map<Country, PrimitiveData> countriesMap = jsonParser.getCountries();
@@ -155,7 +93,8 @@ int main() {
         glm::mat4 bordersModel = glm::mat4(1.0f);
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
-        HttpServer server = HttpServer(&isCountriesBorderVisible);
+        std::vector<std::unique_ptr<Starlink>> starlinks;
+        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
         server.start();
 
         GLfloat simulationTime = 0.0f;
@@ -169,8 +108,17 @@ int main() {
 
         // Counting time for trajectory line
         auto lastTimeChrono = std::chrono::high_resolution_clock::now();
-
+        std::vector<Satellite> SatellitesInfoVec;
         while (!mainWindow.ShouldClose()) {
+
+            SatellitesInfoVec = server.getSatellitesInfo();
+            if (!SatellitesInfoVec.empty()) {
+                for (auto& satelliteInfo : SatellitesInfoVec) {
+                    starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                }
+                server.clearSateliteVector();
+            }
+
             auto currTime = std::chrono::high_resolution_clock::now();
             std::chrono::duration<float> elapsed = currTime - lastTimeChrono;
 
@@ -248,11 +196,6 @@ int main() {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-
-            if (showSatelliteWindow) {
-                renderSatelliteDataImGui();
-            }
-
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

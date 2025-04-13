@@ -5,14 +5,22 @@
 #include <json.hpp>
 #include <thread>
 #include "StarlinkService.h"
+#include "./fetchApi.h"
+#include "./Models/Starlink.h"
 
 class HttpServer {
 public:
-    HttpServer(bool* isCountriesBorderVisiblePtr);
+    HttpServer(bool* isCountriesBorderVisiblePtr, std::string apiKey, std::tm localTimeRef);
     ~HttpServer();
 
     void start();
     void stop();
+    std::vector<Satellite>& getSatellitesInfo() { 
+        return satellites;
+    }
+    void clearSateliteVector() {
+        satellites.clear();
+    }
 
 private:
     void setupEndpoints();
@@ -21,6 +29,9 @@ private:
     httplib::Server svr;
 
     bool* isCountriesBorderVisible;
+    std::vector<Satellite> satellites;
+    std::string apiKey;
+    std::tm localTime;
 };
 
 #endif // HTTPSERVER_HPP
