@@ -30,6 +30,7 @@ public:
 	void Bind(unsigned int textureIndex);
     void Bind(unsigned int textureIndex, unsigned int textureID);
 	void Unbind();
+    void Unbind(unsigned int textureIndex, unsigned int textureID);
 	// :this "texture_diffuse" is temporary solution
     textureStruct getTextureStruct() const { return { ID, pathToTexture, "texture_diffuse"}; }
     static unsigned int loadTextureFromFile(const char* path, const std::string& directory);

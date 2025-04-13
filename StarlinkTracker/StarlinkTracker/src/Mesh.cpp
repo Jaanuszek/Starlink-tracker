@@ -11,8 +11,6 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     vbo.AddVertexStructAttribs();
     vbo.Unbind();
     vao.Unbind();
-
-    texture.Bind(0);
 }
 
 Mesh::Mesh(meshStruct& meshData) :
@@ -47,31 +45,45 @@ Mesh::~Mesh()
     vao.Unbind();
 }
 
-void Mesh::Draw(GLenum primitiveType)
+void Mesh::BindAllTextures()
 {
-    texture.Bind(0);
-    vao.Bind();
-    GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
-    vao.Unbind();
-    texture.Unbind();
+    if (!textures.empty())
+    {
+        for (unsigned int texIndex = 0; texIndex < textures.size(); texIndex++)
+        {
+            texture.Bind(texIndex, textures[texIndex].ID);
+        }
+    }
+    else
+    {
+        texture.Bind(0);
+    }
 }
 
-void Mesh::Draw(GLenum primitiveType, bool inModel)
+void Mesh::UnbindAllTextures()
 {
-    for (unsigned int i = 0; i < textures.size(); i++)
+    if (!textures.empty())
     {
-        GLCall(glActiveTexture(GL_TEXTURE0 + i));
-        GLCall(glBindTexture(GL_TEXTURE_2D, textures[i].ID));
+        // unbind textures from last to first binded one
+        // it has to be int, if we go below 0 we get an error :((
+        for (int texIndex = static_cast<int>(textures.size()) - 1; texIndex >= 0; texIndex--)
+        {
+            texture.Unbind(texIndex, textures[texIndex].ID);
+        }
     }
+    else
+    {
+        texture.Unbind();
+    }
+}
+
+void Mesh::Draw(GLenum primitiveType)
+{
+    BindAllTextures();
     vao.Bind();
     GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
     vao.Unbind();
-
-    for (unsigned int i = 0; i < textures.size(); i++)
-    {
-        GLCall(glActiveTexture(GL_TEXTURE0 + i));
-        GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-    }
+    UnbindAllTextures();
 }
 
 void Mesh::DrawWithoutEBO(GLenum primitiveType, unsigned int count)

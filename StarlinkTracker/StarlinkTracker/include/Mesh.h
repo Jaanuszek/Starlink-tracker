@@ -28,15 +28,18 @@ private:
     EBO ebo;
     Texture texture;
     std::vector<textureStruct> textures;
+    void BindAllTextures();
+    void UnbindAllTextures();
 public:
     Mesh() : vao(), vbo(), ebo(), texture() {}
+    // Mesh with signle texture
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
+    // Mesh with multiple textures
     Mesh(meshStruct& meshData);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
     Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
     ~Mesh();
     void Draw(GLenum primitiveType);
-    void Draw(GLenum primitiveType, bool inModel); //temp solution, change that to match the function above
     void DrawWithoutEBO(GLenum primitiveType, unsigned int count);
     void DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndices, std::vector<int> counts, GLsizei drawCount);
     void UpdateData(const std::vector<VertexPosOnly>& vertices);

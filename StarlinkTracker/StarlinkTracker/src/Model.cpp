@@ -109,6 +109,7 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
         std::vector<textureStruct> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
+
     meshStructVector.push_back(meshStruct{ vertices, indices, textures});
 }
 
@@ -177,7 +178,8 @@ void Model::DrawModel() {
     shader.useShaderProgramWithUniformSet();
     for (auto& mesh : objectsMeshes)
     {
-        mesh.Draw(GL_TRIANGLES, true);
+        //mesh.Draw(GL_TRIANGLES, true);
+        mesh.Draw(GL_TRIANGLES);
     }
 }
 

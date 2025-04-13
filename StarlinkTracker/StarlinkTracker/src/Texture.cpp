@@ -47,6 +47,12 @@ void Texture::Unbind()
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
+void Texture::Unbind(unsigned int textureIndex, unsigned int textureID)
+{
+    GLCall(glActiveTexture(GL_TEXTURE0 + textureIndex));
+    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+}
+
 unsigned int Texture::loadTextureFromFile(const char* path, const std::string& directory) {
 	std::string filename = std::string(path);
     filename = directory + '/' + filename;
