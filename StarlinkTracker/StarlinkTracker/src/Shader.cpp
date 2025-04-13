@@ -100,10 +100,11 @@ bool Shader::isActive() const
 
 void Shader::setMultipleUniformsFromStruct()
 {
-    //if (!isActive()) {
-    //    std::cerr << "[ERROR] Shader program is not active: " << __FILE__ << " " << __LINE__ << std::endl;
-    //    return;
-    //}
+	//for (const auto& [name, uniform] : uniformDataMap)
+	//{
+ //       std::cout << "[DEBUG] Uniform name: " << name << std::endl;
+ //       std::cout << "[DEBUG] Uniform type: " << typeid(uniform.data).name() << std::endl;
+	//}
     for (const auto& [name, uniform] : uniformDataMap) {
         setUniformFromStruct(uniform);
     }

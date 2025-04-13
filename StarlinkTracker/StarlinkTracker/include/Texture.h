@@ -19,6 +19,8 @@ class Texture {
 private:
 	unsigned int ID;
 	int width, height, nrChannels;
+	const char* pathToTexture;
+    //std::string textureType;
 	unsigned char* textureData = nullptr;
 public:
 	Texture(const char* path);
@@ -28,6 +30,8 @@ public:
 	void Bind(unsigned int textureIndex);
     void Bind(unsigned int textureIndex, unsigned int textureID);
 	void Unbind();
+	// :this "texture_diffuse" is temporary solution
+    textureStruct getTextureStruct() const { return { ID, pathToTexture, "texture_diffuse"}; }
     static unsigned int loadTextureFromFile(const char* path, const std::string& directory);
 };
 

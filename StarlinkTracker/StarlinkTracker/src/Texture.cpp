@@ -1,6 +1,7 @@
 #include "../include/Texture.h"
 
-Texture::Texture(const char* path) : ID(0), width(0), height(0), nrChannels(0)
+Texture::Texture(const char* path)
+    : ID(0), width(0), height(0), nrChannels(0), pathToTexture(path)
 {
 	stbi_set_flip_vertically_on_load(1);
 	textureData = stbi_load(path, &width, &height, &nrChannels, 4);

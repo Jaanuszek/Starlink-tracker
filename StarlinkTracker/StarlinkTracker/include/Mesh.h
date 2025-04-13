@@ -12,14 +12,12 @@
 #include "DebugLogs.h"
 #include "Shader.h"
 
-// TODO add camera and textures here
-
+// Struct that contains all the mesh informations vertices, indices and textures
 struct meshStruct
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<textureStruct> textures;
-    //Shader shader;
 };
 
 class Mesh
@@ -29,20 +27,19 @@ private:
     VBO vbo;
     EBO ebo;
     Texture texture;
-    //Shader shader;
+    std::vector<textureStruct> textures;
 public:
     Mesh() : vao(), vbo(), ebo(), texture() {}
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
-    Mesh(meshStruct& meshData, const std::vector<shaderUniformData>& uniformData);
+    Mesh(meshStruct& meshData);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
     Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
     ~Mesh();
     void Draw(GLenum primitiveType);
+    void Draw(GLenum primitiveType, bool inModel); //temp solution, change that to match the function above
     void DrawWithoutEBO(GLenum primitiveType, unsigned int count);
     void DrawMultipleMeshes(GLenum primitiveType, std::vector<int> firstIndices, std::vector<int> counts, GLsizei drawCount);
     void UpdateData(const std::vector<VertexPosOnly>& vertices);
-    //void UpdateShaderUniforms(const std::vector<shaderUniformData>& uniformData);
-    //void UpdateShaderUniform(const shaderUniformData& uniformData);
 };
 
 #endif

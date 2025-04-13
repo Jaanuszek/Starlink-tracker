@@ -15,32 +15,16 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     texture.Bind(0);
 }
 
-Mesh::Mesh(meshStruct& meshData, const std::vector<shaderUniformData>& uniformData) :
+Mesh::Mesh(meshStruct& meshData) :
     vbo(meshData.vertices), ebo(meshData.indices), texture()
 {
-    //Shader& shader = meshData.shader;
-    // dodac ten vector<shaderUniformData> do struktury mesh Struct??
-    // Czy dodac to jako kolejny argument tego konstuktora??
-    // ALBO dodaæ ten wektor w shaderze, bo w sumie to jest jego dzia³ka
-    // trzecia opcja chyba najlepsza
-    std::vector<textureStruct>& textures = meshData.textures;
-    //shader.useShaderProgram();
-    //for (const auto& uniform : uniformData)
-    //{
-    //    shader.updateUniformMap(uniform);
-    //}
+    textures = meshData.textures;
     vao.Bind();
     vbo.Bind();
     ebo.Bind();
     vbo.AddVertexStructAttribs();
     vbo.Unbind();
     vao.Unbind();
-
-
-    for (int textureIndex = 0; textureIndex < textures.size(); textureIndex++)
-    {
-        texture.Bind(textureIndex, textures[textureIndex].ID);
-    }
 }
 
 Mesh::Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate)
@@ -65,9 +49,29 @@ Mesh::~Mesh()
 
 void Mesh::Draw(GLenum primitiveType)
 {
+    texture.Bind(0);
     vao.Bind();
     GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
     vao.Unbind();
+    texture.Unbind();
+}
+
+void Mesh::Draw(GLenum primitiveType, bool inModel)
+{
+    for (unsigned int i = 0; i < textures.size(); i++)
+    {
+        GLCall(glActiveTexture(GL_TEXTURE0 + i));
+        GLCall(glBindTexture(GL_TEXTURE_2D, textures[i].ID));
+    }
+    vao.Bind();
+    GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
+    vao.Unbind();
+
+    for (unsigned int i = 0; i < textures.size(); i++)
+    {
+        GLCall(glActiveTexture(GL_TEXTURE0 + i));
+        GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+    }
 }
 
 void Mesh::DrawWithoutEBO(GLenum primitiveType, unsigned int count)
@@ -88,12 +92,3 @@ void Mesh::UpdateData(const std::vector<VertexPosOnly>& vertices)
 {
     vbo.UpdateData(vertices);
 }
-
-//void Mesh::UpdateShaderUniforms(const std::vector<shaderUniformData>& uniformData)
-//{
-//    // TODO add multiple uniforms update
-//}
-//void Mesh::UpdateShaderUniform(const shaderUniformData& uniformData)
-//{
-//    shader.updateUniformMap(uniformData);
-//}

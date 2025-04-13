@@ -43,7 +43,6 @@ private:
     unsigned int CompileShader(GLenum shaderType, const std::string& shader);
     bool isActive() const;
 public:
-    //Shader(const char* pathToShader,const std::vector<shaderUniformData>& uniformData);
     Shader() = default;
     Shader(const char* pathToShader);
     ~Shader();
@@ -54,11 +53,6 @@ public:
     // Map function helpers
     void updateUniformMap(const shaderUniformData& newUniform);
 
-    // I would change this setter to change or add non existing values, for example
-    // If we store vector with 4 elements, and we pass anothre vector to this setter,
-    // We don't want to overwrite this vector that we are storing, it may lead to some bad things
-    // That's why I should add some kind of cheker? overwriter? 
-    void setUniformDataVector(std::vector<shaderUniformData>& uniformData) { uniformDataVector = uniformData; } //??
     void setUniform1f(const std::string& name, float value);
     void setUniform1i(const std::string& name, int value);
     void setUniformMat4fv(const std::string& name, const glm::mat4& matrix);
