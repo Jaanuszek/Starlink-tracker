@@ -47,6 +47,7 @@ public:
     Shader(const char* pathToShader);
     ~Shader();
     void useShaderProgram();
+    // use shader program, then set all uniforms from the map
     void useShaderProgramWithUniformSet();
     void setMultipleUniformsFromStruct();
     void setUniformFromStruct(const shaderUniformData& uniform);

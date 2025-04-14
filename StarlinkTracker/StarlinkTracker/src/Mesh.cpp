@@ -14,9 +14,8 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
 }
 
 Mesh::Mesh(meshStruct& meshData) :
-    vbo(meshData.vertices), ebo(meshData.indices), texture()
+    vbo(meshData.vertices), ebo(meshData.indices), texture(meshData.textures)
 {
-    textures = meshData.textures;
     vao.Bind();
     vbo.Bind();
     ebo.Bind();
@@ -45,45 +44,13 @@ Mesh::~Mesh()
     vao.Unbind();
 }
 
-void Mesh::BindAllTextures()
-{
-    if (!textures.empty())
-    {
-        for (unsigned int texIndex = 0; texIndex < textures.size(); texIndex++)
-        {
-            texture.Bind(texIndex, textures[texIndex].ID);
-        }
-    }
-    else
-    {
-        texture.Bind(0);
-    }
-}
-
-void Mesh::UnbindAllTextures()
-{
-    if (!textures.empty())
-    {
-        // unbind textures from last to first binded one
-        // it has to be int, if we go below 0 we get an error :((
-        for (int texIndex = static_cast<int>(textures.size()) - 1; texIndex >= 0; texIndex--)
-        {
-            texture.Unbind(texIndex, textures[texIndex].ID);
-        }
-    }
-    else
-    {
-        texture.Unbind();
-    }
-}
-
 void Mesh::Draw(GLenum primitiveType)
 {
-    BindAllTextures();
+    texture.BindAllTextures();
     vao.Bind();
     GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
     vao.Unbind();
-    UnbindAllTextures();
+    texture.UnbindAllTextures();
 }
 
 void Mesh::DrawWithoutEBO(GLenum primitiveType, unsigned int count)

@@ -18,11 +18,12 @@ private:
     std::vector<meshStruct> meshStructVector;
     std::vector<textureStruct> texturesLoaded;
     std::unordered_map<std::string, shaderUniformData> uniformDataMap;
+    Shader shader;
     void loadModel(const char* pathToModel);
     void processNode(aiNode* node, const aiScene* scene);
     void processMesh(aiMesh* mesh, const aiScene* scene);
     void createMeshes();
-    Shader shader;
+    void addTexturesToUniformMap();
     std::vector<textureStruct> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 public:
     Model(const char* pathToModel, const char* pathToShader);

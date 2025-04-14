@@ -15,35 +15,8 @@ void Model::loadModel(const char* pathToModel)
 
     processNode(scene->mRootNode, scene);
 
-    // add textures for uniformDataMap
-    int textureDiffuseIndex = 0;
-    int textureSpecularIndex = 0;
-    int textureIndex = 0;
-    for (auto& texture : texturesLoaded)
-    {
-        shaderUniformData uniform;
-        std::string textureType;
-        if (texture.type == "texture_diffuse") {
-            textureType = "texture_diffuse" + std::to_string(textureDiffuseIndex);
-            uniform.data = textureIndex;
-            textureDiffuseIndex++;
-            textureIndex++;
-        }
-        else if (texture.type == "texture_specular") {
-            textureType = "texture_specular" + std::to_string(textureSpecularIndex);
-            uniform.data = textureIndex;
-            textureDiffuseIndex++;
-            textureIndex++;
-        }
-        else {
-            textureType = texture.type;
-        }
+    addTexturesToUniformMap();
 
-        uniform.uniformName = textureType;
-        uniformDataMap[uniform.uniformName] = uniform;
-    }
-    UpdateShaderUniforms(uniformDataMap);
-    shader.useShaderProgramWithUniformSet();
     std::cout << "[DEBUG] Model from path: " << pathToModel << " Loaded!" << std::endl;
 }
 
@@ -65,8 +38,6 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
     std::vector<unsigned int> indices;
     indices.reserve(mesh->mNumFaces * 3);
     std::vector<textureStruct> textures;
-    //textures.reserve()
-    // TODO add texture here
     for (unsigned int verticeIndex = 0; verticeIndex < mesh->mNumVertices; verticeIndex++)
     {
         Vertex vertex;
@@ -113,6 +84,38 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene)
     meshStructVector.push_back(meshStruct{ vertices, indices, textures});
 }
 
+void Model::addTexturesToUniformMap()
+{
+    int textureDiffuseIndex = 0;
+    int textureSpecularIndex = 0;
+    int textureIndex = 0;
+    for (auto& texture : texturesLoaded)
+    {
+        shaderUniformData uniform;
+        std::string textureType;
+        if (texture.type == "texture_diffuse") {
+            textureType = "texture_diffuse" + std::to_string(textureDiffuseIndex);
+            uniform.data = textureIndex;
+            textureDiffuseIndex++;
+            textureIndex++;
+        }
+        else if (texture.type == "texture_specular") {
+            textureType = "texture_specular" + std::to_string(textureSpecularIndex);
+            uniform.data = textureIndex;
+            textureDiffuseIndex++;
+            textureIndex++;
+        }
+        else {
+            textureType = texture.type;
+        }
+
+        uniform.uniformName = textureType;
+        uniformDataMap[uniform.uniformName] = uniform;
+    }
+    UpdateShaderUniforms(uniformDataMap);
+    shader.useShaderProgramWithUniformSet();
+}
+
 std::vector<textureStruct> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
     std::vector<textureStruct> textures;
@@ -147,15 +150,6 @@ std::vector<textureStruct> Model::loadMaterialTextures(aiMaterial* mat, aiTextur
 
 void Model::createMeshes()
 {
-//GLCall(glActiveTexture(GL_TEXTURE0 + textureIndex));
-//GLCall(glBindTexture(GL_TEXTURE_2D, textureID)); {
-    //for (unsigned int i = 0; i < texturesLoaded.size(); i++)
-    //{
-    //    //std::cout << "[DEBUG] Mesh " << i << " created!" << std::endl;
-    //    GLCall(glActiveTexture(GL_TEXTURE0 + i));
-    //    GLCall(glBindTexture(GL_TEXTURE_2D, texturesLoaded[i].ID));
-    //}
-    std::cout << "=======MODEL" << std::endl;
     for (auto& meshData : meshStructVector)
     {
         objectsMeshes.emplace_back(meshData);
@@ -175,10 +169,9 @@ void Model::DrawModel() {
     // bind shaderProgram
     // set shader uniforms from map that is in Shader class
     // Then draw all meshes
-    shader.useShaderProgramWithUniformSet();
+    shader.useShaderProgramWithUniformSet();  // Use program shader, set uniforms, and draw
     for (auto& mesh : objectsMeshes)
     {
-        //mesh.Draw(GL_TRIANGLES, true);
         mesh.Draw(GL_TRIANGLES);
     }
 }
@@ -188,8 +181,6 @@ void Model::UpdateShaderUniforms(const std::unordered_map<std::string, shaderUni
     for (const auto& [name, uniform] : uniformData)
     {
         shader.updateUniformMap(uniform);
-        //DEBUG reason
-        uniformDataMap[name] = uniform;
     }
 }
 

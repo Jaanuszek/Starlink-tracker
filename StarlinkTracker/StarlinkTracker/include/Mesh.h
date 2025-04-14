@@ -27,9 +27,6 @@ private:
     VBO vbo;
     EBO ebo;
     Texture texture;
-    std::vector<textureStruct> textures;
-    void BindAllTextures();
-    void UnbindAllTextures();
 public:
     Mesh() : vao(), vbo(), ebo(), texture() {}
     // Mesh with signle texture
@@ -37,7 +34,6 @@ public:
     // Mesh with multiple textures
     Mesh(meshStruct& meshData);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
-    Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
     ~Mesh();
     void Draw(GLenum primitiveType);
     void DrawWithoutEBO(GLenum primitiveType, unsigned int count);

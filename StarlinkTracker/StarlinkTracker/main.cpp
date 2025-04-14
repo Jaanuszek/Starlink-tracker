@@ -53,7 +53,6 @@ int main() {
     std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
     std::map<std::string, std::string> satelitesData;
 
-    std::cout << "[DEBUG] ModelCreation" << std::endl;
     Model starlinkModel("assets/Models/starlink/starlink.obj", "shaders/starlinkModelShader.shader");
 
     JSONParser jsonParser;
@@ -80,24 +79,25 @@ int main() {
                 countriesCounts.push_back(polygonVertices.size());
             }
         }
+        // Creation of countries border mesh
         Mesh CountriesBorderMesh(countriesBorderVertices);
 
-        // Set shader from a file
         glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
         earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees to change coordinates upside down 
         glm::mat4 bordersModel = glm::mat4(1.0f);
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
+
+        // Creation of Shaders
         Shader shader("shaders/basicShader.shader");
         Shader shaderBorders("shaders/countriesBorderShader.shader");
-        Shader starlinkShader("shaders/countriesBorderShader.shader"); //temporary shader
         Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
 
         std::unordered_map<std::string, shaderUniformData> uniformDataMap =  
         {  
-            {"projection", shaderUniformData{"projection", projection}},  
-            {"model", shaderUniformData{"model", earthModel}},  
-            {"view", shaderUniformData{"view", camera.GetViewMatrix()}},  
+            {"projection", shaderUniformData{"projection", projection}},
+            {"model", shaderUniformData{"model", earthModel}},
+            {"view", shaderUniformData{"view", camera.GetViewMatrix()}},
         };
 
         std::vector<std::unique_ptr<Starlink>> starlinks;
@@ -157,14 +157,12 @@ int main() {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
             //Use shader program (use this specific shader)
-            // ===================================
             shader.useShaderProgram();
-            //// Set uniform matrix in Shader
-            shader.updateUniformMap({ "projection", projection });
-            shader.updateUniformMap({ "model", earthModel });
-            shader.updateUniformMap({ "view", camera.GetViewMatrix() });
-            shader.updateUniformMap({ "ourTexture", 0 });
-            shader.setMultipleUniformsFromStruct();
+            // Set uniform matrix in Shader
+            shader.setUniformMat4fv("projection", projection);
+            shader.setUniformMat4fv("model", earthModel);
+            shader.setUniformMat4fv("view", camera.GetViewMatrix());
+            shader.setUniform1i("ourTexture", 0);
             SphereMesh.Draw(GL_TRIANGLES);
 
             if (isCountriesBorderVisible) {
@@ -177,11 +175,14 @@ int main() {
             }
 
             for (auto& starlink : starlinks) {
+
+                // its the same as above (f.e shader.updateUniformMat4fv itp..)
+                // but for model it is implemented to work like this
+                // at least for now
                 uniformDataMap["projection"] = shaderUniformData{ "projection", projection };
                 uniformDataMap["view"] = shaderUniformData{ "view", camera.GetViewMatrix() };
                 uniformDataMap["model"] = shaderUniformData{ "model", starlink->getModelMatrix() };
                 starlinkModel.UpdateShaderUniforms(uniformDataMap);
-                //starlinkModel.ActivateModelShader();
                 // Updating Starlink position
                 starlink->UpdatePosition(simulationTime);
                 // Drawing Starlink model

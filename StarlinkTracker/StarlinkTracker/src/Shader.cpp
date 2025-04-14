@@ -1,7 +1,5 @@
 #include "../include/Shader.h"
 
-//Shader::Shader(const char* pathToShader, const std::vector<shaderUniformData>& uniformData) 
-//	: shaderFilePath(pathToShader), shaderProgramID(0), uniformDataVector(uniformData)
 Shader::Shader(const char* pathToShader)
 	: shaderFilePath(pathToShader), shaderProgramID(0)
 {
@@ -100,11 +98,6 @@ bool Shader::isActive() const
 
 void Shader::setMultipleUniformsFromStruct()
 {
-	//for (const auto& [name, uniform] : uniformDataMap)
-	//{
- //       std::cout << "[DEBUG] Uniform name: " << name << std::endl;
- //       std::cout << "[DEBUG] Uniform type: " << typeid(uniform.data).name() << std::endl;
-	//}
     for (const auto& [name, uniform] : uniformDataMap) {
         setUniformFromStruct(uniform);
     }
