@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 #include <variant>
-#include <typeinfo>
 #include <unordered_map>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
