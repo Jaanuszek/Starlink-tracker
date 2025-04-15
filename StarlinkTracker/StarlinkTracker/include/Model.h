@@ -14,16 +14,23 @@
 class Model {
 private:
     std::string directoryPath;
-    std::vector<std::pair<std::vector<Vertex>, std::vector<unsigned int>>> meshes;
     std::vector<Mesh> objectsMeshes;
+    std::vector<meshStruct> meshStructVector;
+    std::vector<textureStruct> texturesLoaded;
+    std::unordered_map<std::string, shaderUniformData> uniformDataMap;
+    Shader shader;
     void loadModel(const char* pathToModel);
     void processNode(aiNode* node, const aiScene* scene);
     void processMesh(aiMesh* mesh, const aiScene* scene);
     void createMeshes();
+    void addTexturesToUniformMap();
+    std::vector<textureStruct> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 public:
-    Model(const char* pathToModel);
+    Model(const char* pathToModel, const char* pathToShader);
     ~Model();
     void DrawModel();
+    void UpdateShaderUniforms(const std::unordered_map<std::string, shaderUniformData>& uniformData);
+    void ActivateModelShader();
 };
 
 #endif

@@ -27,8 +27,9 @@ float rotationSpeed = 0.05f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+float starlinkSpeed = 30.0f;
 
-bool isCountriesBorderVisible = false;
+bool isCountriesBorderVisible = true;
 
 int main() {
     Window mainWindow = Window(800, 600);
@@ -53,7 +54,7 @@ int main() {
     std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
     std::map<std::string, std::string> satelitesData;
 
-    Model starlinkModel("assets/Models/starlink/starlink.obj");
+    Model starlinkModel("assets/Models/starlink/starlink.obj", "shaders/starlinkModelShader.shader");
 
     JSONParser jsonParser;
     jsonParser.ParseGeoJSON("assets/geoJSON/countriesGeoJSON.json", 0.50f);
@@ -79,13 +80,8 @@ int main() {
                 countriesCounts.push_back(polygonVertices.size());
             }
         }
+        // Creation of countries border mesh
         Mesh CountriesBorderMesh(countriesBorderVertices);
-
-        // Set shader from a file
-        Shader shader("shaders/basicShader.shader");
-        Shader shaderBorders("shaders/countriesBorderShader.shader");
-        Shader starlinkShader("shaders/countriesBorderShader.shader"); //temporary shader
-        Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
 
         glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
@@ -93,7 +89,25 @@ int main() {
         glm::mat4 bordersModel = glm::mat4(1.0f);
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
+        // Creation of Shaders
+        Shader shader("shaders/basicShader.shader");
+        Shader shaderBorders("shaders/countriesBorderShader.shader");
+        Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
+
+        std::unordered_map<std::string, shaderUniformData> starlinkUniformDataMap =  
+        {  
+            {"projection", shaderUniformData{"projection", projection}},
+            {"model", shaderUniformData{"model", earthModel}},
+            {"view", shaderUniformData{"view", camera.GetViewMatrix()}},
+        };
+
+        // Vector containing all starlinks
         std::vector<std::unique_ptr<Starlink>> starlinks;
+        // Map containing all starlinks (it helps us checking wheter the satellite is already in the map or not)
+        std::unordered_map<int, Satellite> SatellitesInfoMap;
+
+        std::vector<Satellite> SatellitesInfoVec;
+
         HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
         server.start();
 
@@ -108,15 +122,19 @@ int main() {
 
         // Counting time for trajectory line
         auto lastTimeChrono = std::chrono::high_resolution_clock::now();
-        std::vector<Satellite> SatellitesInfoVec;
         while (!mainWindow.ShouldClose()) {
 
             SatellitesInfoVec = server.getSatellitesInfo();
             if (!SatellitesInfoVec.empty()) {
                 for (auto& satelliteInfo : SatellitesInfoVec) {
-                    starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                    // Check if the satellite is already in the map
+                    if (SatellitesInfoMap.find(satelliteInfo.satid) == SatellitesInfoMap.end()) {
+                        SatellitesInfoMap[satelliteInfo.satid] = satelliteInfo;
+                        starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                    }
                 }
                 server.clearSateliteVector();
+                SatellitesInfoVec.clear();
             }
 
             auto currTime = std::chrono::high_resolution_clock::now();
@@ -133,7 +151,7 @@ int main() {
             FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
 
             // You can speed up the starlinks here
-            simulationTime += deltaTime * 30.0f; // 30.0f is the speed of the simulation
+            simulationTime += deltaTime * starlinkSpeed;
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
@@ -163,16 +181,23 @@ int main() {
                 shaderBorders.setUniformMat4fv("projection", projection);
                 shaderBorders.setUniformMat4fv("model", bordersModel);
                 shaderBorders.setUniformMat4fv("view", camera.GetViewMatrix());
-                shaderBorders.setUniform1i("ourTexture", 0);
 
                 CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
             }
 
+            // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // Jakbyœ chcia³ usuwaæ starlinki o konrketnym id, to usuñ je z vectora "starlinks"
+            // oraz usuñ pozycje z mapy "SatellitesInfoMap"
+            // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             for (auto& starlink : starlinks) {
-                starlinkShader.useShaderProgram();
-                starlinkShader.setUniformMat4fv("projection", projection);
-                starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
-                starlinkShader.setUniformMat4fv("model", starlink->getModelMatrix());
+
+                // its the same as above (f.e shader.updateUniformMat4fv itp..)
+                // but for model it is implemented to work like this
+                // at least for now
+                starlinkUniformDataMap["projection"] = shaderUniformData{ "projection", projection };
+                starlinkUniformDataMap["view"] = shaderUniformData{ "view", camera.GetViewMatrix() };
+                starlinkUniformDataMap["model"] = shaderUniformData{ "model", starlink->getModelMatrix() };
+                starlinkModel.UpdateShaderUniforms(starlinkUniformDataMap); // it has to be called after uniformDataMap is updated
                 // Updating Starlink position
                 starlink->UpdatePosition(simulationTime);
                 // Drawing Starlink model
