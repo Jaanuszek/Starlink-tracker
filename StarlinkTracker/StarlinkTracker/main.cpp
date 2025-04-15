@@ -27,6 +27,7 @@ float rotationSpeed = 0.05f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+float starlinkSpeed = 30.0f;
 
 bool isCountriesBorderVisible = true;
 
@@ -93,14 +94,20 @@ int main() {
         Shader shaderBorders("shaders/countriesBorderShader.shader");
         Shader starlinkTrajectoryShader("shaders/starlinkTrajectoryShader.shader");
 
-        std::unordered_map<std::string, shaderUniformData> uniformDataMap =  
+        std::unordered_map<std::string, shaderUniformData> starlinkUniformDataMap =  
         {  
             {"projection", shaderUniformData{"projection", projection}},
             {"model", shaderUniformData{"model", earthModel}},
             {"view", shaderUniformData{"view", camera.GetViewMatrix()}},
         };
 
+        // Vector containing all starlinks
         std::vector<std::unique_ptr<Starlink>> starlinks;
+        // Map containing all starlinks (it helps us checking wheter the satellite is already in the map or not)
+        std::unordered_map<int, Satellite> SatellitesInfoMap;
+
+        std::vector<Satellite> SatellitesInfoVec;
+
         HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
         server.start();
 
@@ -115,15 +122,19 @@ int main() {
 
         // Counting time for trajectory line
         auto lastTimeChrono = std::chrono::high_resolution_clock::now();
-        std::vector<Satellite> SatellitesInfoVec;
         while (!mainWindow.ShouldClose()) {
 
             SatellitesInfoVec = server.getSatellitesInfo();
             if (!SatellitesInfoVec.empty()) {
                 for (auto& satelliteInfo : SatellitesInfoVec) {
-                    starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                    // Check if the satellite is already in the map
+                    if (SatellitesInfoMap.find(satelliteInfo.satid) == SatellitesInfoMap.end()) {
+                        SatellitesInfoMap[satelliteInfo.satid] = satelliteInfo;
+                        starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                    }
                 }
                 server.clearSateliteVector();
+                SatellitesInfoVec.clear();
             }
 
             auto currTime = std::chrono::high_resolution_clock::now();
@@ -140,7 +151,7 @@ int main() {
             FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
 
             // You can speed up the starlinks here
-            simulationTime += deltaTime * 30.0f; // 30.0f is the speed of the simulation
+            simulationTime += deltaTime * starlinkSpeed;
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
@@ -174,15 +185,19 @@ int main() {
                 CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
             }
 
+            // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // Jakbyœ chcia³ usuwaæ starlinki o konrketnym id, to usuñ je z vectora "starlinks"
+            // oraz usuñ pozycje z mapy "SatellitesInfoMap"
+            // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             for (auto& starlink : starlinks) {
 
                 // its the same as above (f.e shader.updateUniformMat4fv itp..)
                 // but for model it is implemented to work like this
                 // at least for now
-                uniformDataMap["projection"] = shaderUniformData{ "projection", projection };
-                uniformDataMap["view"] = shaderUniformData{ "view", camera.GetViewMatrix() };
-                uniformDataMap["model"] = shaderUniformData{ "model", starlink->getModelMatrix() };
-                starlinkModel.UpdateShaderUniforms(uniformDataMap);
+                starlinkUniformDataMap["projection"] = shaderUniformData{ "projection", projection };
+                starlinkUniformDataMap["view"] = shaderUniformData{ "view", camera.GetViewMatrix() };
+                starlinkUniformDataMap["model"] = shaderUniformData{ "model", starlink->getModelMatrix() };
+                starlinkModel.UpdateShaderUniforms(starlinkUniformDataMap); // it has to be called after uniformDataMap is updated
                 // Updating Starlink position
                 starlink->UpdatePosition(simulationTime);
                 // Drawing Starlink model
