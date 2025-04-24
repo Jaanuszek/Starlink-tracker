@@ -35,6 +35,9 @@ public:
     const glm::mat4& getModelMatrix() const { return model; }
     const std::vector<VertexPosOnly>& getTrajectoryLine() const { return trajectoryLine; }
     const glm::vec4& getTrajectoryLineColor() const { return trajectoryLineColor; }
+    const Satellite& getSatelliteInfo() const { return satelliteInfo; }
+    libsgp4::Vector getCurrentPosition() const { return eci.Position(); }
+    libsgp4::Vector getCurrentVelocity() const { return eci.Velocity(); }
 };
 
 #endif

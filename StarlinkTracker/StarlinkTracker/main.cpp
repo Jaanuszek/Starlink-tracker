@@ -108,7 +108,7 @@ int main() {
 
         std::vector<Satellite> SatellitesInfoVec;
 
-        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
+        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time, camera, starlinks);
         server.start();
 
         GLfloat simulationTime = 0.0f;
@@ -185,11 +185,27 @@ int main() {
                 CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
             }
 
+            const auto& visibilityMap = server.getStarlinkVisibilityMap();
+
             // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // Jakbyœ chcia³ usuwaæ starlinki o konrketnym id, to usuñ je z vectora "starlinks"
-            // oraz usuñ pozycje z mapy "SatellitesInfoMap"
+            // Jakbyï¿½ chciaï¿½ usuwaï¿½ starlinki o konrketnym id, to usuï¿½ je z vectora "starlinks"
+            // oraz usuï¿½ pozycje z mapy "SatellitesInfoMap"
             // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             for (auto& starlink : starlinks) {
+                int id = starlink->getSatelliteInfo().satid;
+
+                auto it = visibilityMap.find(id);
+                if (it == visibilityMap.end()) {
+                    continue;
+                }
+
+                bool visible = it->second.first;
+                bool trajectoryVisible = it->second.second;
+
+                if (!visible) {
+                    continue;
+                }
+
 
                 // its the same as above (f.e shader.updateUniformMat4fv itp..)
                 // but for model it is implemented to work like this
@@ -203,6 +219,10 @@ int main() {
                 // Drawing Starlink model
                 starlinkModel.DrawModel();
                 // Drawing trajectory
+                if (!trajectoryVisible) {
+                    continue;
+                }
+
                 starlinkTrajectoryShader.useShaderProgram();
                 starlinkTrajectoryShader.setUniformMat4fv("projection", projection);
                 starlinkTrajectoryShader.setUniformMat4fv("view", camera.GetViewMatrix());

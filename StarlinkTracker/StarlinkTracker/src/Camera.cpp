@@ -1,9 +1,10 @@
-
+﻿
 #include "../include/Camera.h"
 
 Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch, GLfloat startMoveSpeed, GLfloat startTurnSpeed)
-	: position(startPosition), worldUp(startUp), yaw(startYaw), pitch(startPitch), front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(startMoveSpeed), mouseSensitivity(startTurnSpeed) {
+	: position(startPosition), worldUp(startUp), yaw(startYaw), pitch(startPitch), front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(startMoveSpeed), mouseSensitivity(startTurnSpeed), target(glm::vec3(0.0f, 0.0f, 0.0f)) {
 	UpdateCameraVectors();
+	UpdateCameraVectorsBaseOnEndpoint();
 }
 
 Camera::~Camera() {
@@ -70,6 +71,33 @@ void Camera::ProcessMouseInput(GLfloat xChange, GLfloat yChange) {
 	}
 
 	UpdateCameraVectors();
+}
+
+void Camera::UpdateCameraVectorsBaseOnEndpoint() {
+	float yawRad = glm::radians(yaw);
+	float pitchRad = glm::radians(pitch);
+
+	position.x = target.x + 2 * cos(pitchRad) * cos(yawRad);
+	position.y = target.y + 2 * sin(pitchRad);
+	position.z = target.z + 2 * cos(pitchRad) * sin(yawRad);
+
+	front = glm::normalize(target - position);
+	right = glm::normalize(glm::cross(front, worldUp));
+	up = glm::normalize(glm::cross(right, front));
+}
+
+void Camera::MoveCamera(GLfloat xChange, GLfloat yChange) {
+	yaw += xChange;
+	pitch += yChange;
+
+	if (pitch > 89.0f) {
+		pitch = 89.0f;
+	}
+
+	if (pitch < -89.0f) {
+		pitch = -89.0f;
+	}
+	UpdateCameraVectorsBaseOnEndpoint();
 }
 
 glm::mat4 Camera::GetViewMatrix() {
