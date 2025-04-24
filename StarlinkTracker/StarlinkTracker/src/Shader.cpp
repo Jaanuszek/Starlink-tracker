@@ -1,7 +1,9 @@
 #include "../include/Shader.h"
 
-Shader::Shader(const char* pathToShader) : shaderFilePath(pathToShader), shaderProgramID(0)
+Shader::Shader(const char* pathToShader)
+	: shaderFilePath(pathToShader), shaderProgramID(0)
 {
+    std::cout << "[DEBUG] Shader program created" << std::endl;
 	ShaderProgramSource shaderSource = parseShader(pathToShader);
 	shaderProgramID = CreateShader(shaderSource.vertexShaderSource, shaderSource.fragmentShaderSource);
 }
@@ -86,10 +88,66 @@ unsigned int Shader::CompileShader(GLenum shaderType, const std::string& shader)
 	}
 	return shaderID;
 }
+
+bool Shader::isActive() const
+{
+    GLint currentProgram = 0;
+    GLCall(glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram));
+    return currentProgram == shaderProgramID;
+}
+
+void Shader::setMultipleUniformsFromStruct()
+{
+    for (const auto& [name, uniform] : uniformDataMap) {
+        setUniformFromStruct(uniform);
+    }
+}
+
+void Shader::setUniformFromStruct(const shaderUniformData& uniform)
+{
+	if (!isActive()) {
+		std::cerr << "[ERROR] Shader program is not active: " << __FILE__ << " " << __LINE__ << "Uniform name: " << uniform.uniformName << std::endl;
+		return;
+	}
+	std::visit([&](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr (std::is_same_v<T, int>) {
+			setUniform1i(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, float>) {
+			setUniform1f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, glm::vec3>) {
+			setUniformVec3f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, glm::vec4>) {
+			setUniformVec4f(uniform.uniformName, arg);
+		}
+		else if constexpr (std::is_same_v<T, glm::mat4>) {
+            setUniformMat4fv(uniform.uniformName, arg);
+		}
+		else {
+			static_assert("Unsupported type");
+		}
+	}, uniform.data);
+}
+
+void Shader::updateUniformMap(const shaderUniformData& newUniform)
+{
+    uniformDataMap[newUniform.uniformName] = newUniform;
+}
+
 void Shader::useShaderProgram()
 {
 	GLCall(glUseProgram(shaderProgramID));
 }
+
+void Shader::useShaderProgramWithUniformSet()
+{
+	GLCall(glUseProgram(shaderProgramID));
+	setMultipleUniformsFromStruct();
+}
+
 void Shader::setUniform1f(const std::string& name, float value)
 {
 	GLCall(glUniform1f(glGetUniformLocation(shaderProgramID, name.c_str()), value));
