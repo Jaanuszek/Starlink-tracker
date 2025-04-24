@@ -199,7 +199,6 @@
     <ClCompile Include="src\Models\Sphere.cpp" />
     <ClCompile Include="src\Models\Starlink.cpp" />
     <ClCompile Include="src\Shader.cpp" />
-    <ClCompile Include="src\StarlinkService.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\VAO.cpp" />
     <ClCompile Include="src\VBO.cpp" />
@@ -255,7 +254,6 @@
     <ClInclude Include="include\Models\Sphere.h" />
     <ClInclude Include="include\Models\Starlink.h" />
     <ClInclude Include="include\Shader.h" />
-    <ClInclude Include="include\StarlinkService.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\VAO.h" />
     <ClInclude Include="include\VBO.h" />

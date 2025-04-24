@@ -15,6 +15,7 @@ public:
 
 	void ProcessKeyboardInput(GLfloat deltaTime);
 	void ProcessMouseInput(GLfloat xChange, GLfloat yChange);
+	void MoveCamera(GLfloat xChange, GLfloat yChange);
 	glm::mat4 GetViewMatrix();
 
 private:
@@ -30,7 +31,10 @@ private:
 	GLfloat movementSpeed;
 	GLfloat mouseSensitivity;
 
+	glm::vec3 target;
+
 	void UpdateCameraVectors();
+	void UpdateCameraVectorsBaseOnEndpoint();
 };
 
 #endif

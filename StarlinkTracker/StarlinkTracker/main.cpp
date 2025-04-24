@@ -94,7 +94,7 @@ int main() {
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
         std::vector<std::unique_ptr<Starlink>> starlinks;
-        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time);
+        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time, camera, starlinks);
         server.start();
 
         GLfloat simulationTime = 0.0f;
@@ -168,7 +168,23 @@ int main() {
                 CountriesBorderMesh.DrawMultipleMeshes(GL_LINE_STRIP, countriesOffsets, countriesCounts, countriesOffsets.size());
             }
 
+            const auto& visibilityMap = server.getStarlinkVisibilityMap();
+
             for (auto& starlink : starlinks) {
+                int id = starlink->getSatelliteInfo().satid;
+
+                auto it = visibilityMap.find(id);
+                if (it == visibilityMap.end()) {
+                    continue;
+                }
+
+                bool visible = it->second.first;
+                bool trajectoryVisible = it->second.second;
+
+                if (!visible) {
+                    continue;
+                }
+
                 starlinkShader.useShaderProgram();
                 starlinkShader.setUniformMat4fv("projection", projection);
                 starlinkShader.setUniformMat4fv("view", camera.GetViewMatrix());
@@ -178,6 +194,10 @@ int main() {
                 // Drawing Starlink model
                 starlinkModel.DrawModel();
                 // Drawing trajectory
+                if (!trajectoryVisible) {
+                    continue;
+                }
+
                 starlinkTrajectoryShader.useShaderProgram();
                 starlinkTrajectoryShader.setUniformMat4fv("projection", projection);
                 starlinkTrajectoryShader.setUniformMat4fv("view", camera.GetViewMatrix());
