@@ -74,7 +74,6 @@ void Camera::ProcessMouseInput(GLfloat xChange, GLfloat yChange) {
 }
 
 void Camera::UpdateCameraVectorsBaseOnEndpoint() {
-	// Przeliczanie pozycji kamery na podstawie yaw i pitch (orbita)
 	float yawRad = glm::radians(yaw);
 	float pitchRad = glm::radians(pitch);
 
@@ -82,7 +81,6 @@ void Camera::UpdateCameraVectorsBaseOnEndpoint() {
 	position.y = target.y + 2 * sin(pitchRad);
 	position.z = target.z + 2 * cos(pitchRad) * sin(yawRad);
 
-	// Oblicz wektor front (z pozycji do �rodka)
 	front = glm::normalize(target - position);
 	right = glm::normalize(glm::cross(front, worldUp));
 	up = glm::normalize(glm::cross(right, front));
