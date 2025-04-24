@@ -1,64 +1,43 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-
-import {
-	StarlinkInfoData,
-	starlinkInfoSchema,
-} from '@/schemas/starlinkInfoSchema';
+import { useGetLoadedStarlinksInfo } from '@/queries/useGetLoadedStarlinksInfo';
 import { useStarlinkInfo } from '@/mutations/useStarlinkInfo';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TabsContent } from './ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form';
-import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { Label } from './ui/label';
 
 export const StarlinkInfoTab = () => {
-	const form = useForm({
-		resolver: zodResolver(starlinkInfoSchema),
-		defaultValues: { starlinkId: '' },
-	});
+	const { data: loadedStarlinks } = useGetLoadedStarlinksInfo();
 
 	const { data, mutateAsync: getStarlinkInfo, isPending } = useStarlinkInfo();
 
-	const handleSubmit = async (data: StarlinkInfoData) => {
-		await getStarlinkInfo(data.starlinkId);
+	const handleClick = async (id: number) => {
+		await getStarlinkInfo(id.toString());
 	};
 
 	return (
 		<TabsContent value='info' className='space-y-8'>
 			<Card>
-				<CardContent>
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(handleSubmit)}>
-							<FormField
-								control={form.control}
-								name='starlinkId'
-								render={({ field }) => (
-									<FormItem>
-										<FormControl>
-											<Input {...field} placeholder='Enter ID, f.e. 123' />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+				<CardContent className='space-y-4'>
+					{loadedStarlinks?.map((starlink) => (
+						<div
+							key={starlink.id}
+							className='flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm'
+						>
+							<Label>Starlink with ID: {starlink.id}</Label>
 							<Button
-								disabled={isPending || !form.formState.isValid}
-								type='submit'
-								className='mt-2'
+								disabled={isPending}
+								onClick={() => handleClick(starlink.id)}
 							>
-								Get info about starlink
+								Get info
 							</Button>
-						</form>
-					</Form>
+						</div>
+					))}
 				</CardContent>
 			</Card>
 			{data && (
 				<Card>
 					<CardHeader>
-						<CardTitle>
-							Info about starlink with ID: {form.getValues().starlinkId}
-						</CardTitle>
+						<CardTitle>Info about starlink with ID: {data.id}</CardTitle>
 					</CardHeader>
 					<CardContent className='grid grid-cols-2 gap-4'>
 						<div className='flex items-center gap-4'>
@@ -66,8 +45,28 @@ export const StarlinkInfoTab = () => {
 							<span>{data.id}</span>
 						</div>
 						<div className='flex items-center gap-4'>
-							<span>TLE:</span>
-							<span>{data.tle}</span>
+							<span>Satellite Name:</span>
+							<span>{data.satname}</span>
+						</div>
+						<div className='flex items-center gap-4'>
+							<span>TLE Line 1:</span>
+							<span>{data.tleLine1}</span>
+						</div>
+						<div className='flex items-center gap-4'>
+							<span>TLE Line 2:</span>
+							<span>{data.tleLine2}</span>
+						</div>
+						<div className='flex items-center gap-4'>
+							<span>Latitude:</span>
+							<span>{data.latitude}</span>
+						</div>
+						<div className='flex items-center gap-4'>
+							<span>Longitude:</span>
+							<span>{data.longitude}</span>
+						</div>
+						<div className='flex items-center gap-4'>
+							<span>Altitude:</span>
+							<span>{data.altitude}</span>
 						</div>
 						<div className='flex items-center gap-4'>
 							<span>Position X:</span>

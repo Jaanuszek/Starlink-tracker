@@ -1,3 +1,5 @@
+'use client';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
@@ -16,20 +18,18 @@ export const RotateCameraTab = () => {
 	const form = useForm({
 		resolver: zodResolver(rotateCameraSchema),
 		defaultValues: {
-			angleX: '',
-			angleY: '',
-			angleZ: '',
+			angleX: undefined,
+			angleY: undefined,
 		},
 	});
 
 	const { mutateAsync: showTrajectory, isPending } = useRotateCamera();
 
 	const handleSubmit = async (data: RotateCameraData) => {
-		const { angleX, angleY, angleZ } = data;
+		const { angleX, angleY } = data;
 		await showTrajectory({
-			angleX: parseFloat(angleX),
-			angleY: parseFloat(angleY),
-			angleZ: parseFloat(angleZ),
+			angleX: angleX ?? 0,
+			angleY: angleY ?? 0,
 		});
 	};
 
@@ -50,9 +50,12 @@ export const RotateCameraTab = () => {
 										<FormControl>
 											<Input
 												{...field}
+												value={field.value ?? ''}
 												placeholder='Enter the rotation angle around the X axis'
 												onChange={(e) =>
-													field.onChange(e.target.value.replace(/[^0-9]/g, ''))
+													field.onChange(
+														e.target.value.replace(/[^0-9.-]/g, ''),
+													)
 												}
 											/>
 										</FormControl>
@@ -68,27 +71,12 @@ export const RotateCameraTab = () => {
 										<FormControl>
 											<Input
 												{...field}
+												value={field.value ?? ''}
 												placeholder='Enter the rotation angle around the Y axis'
 												onChange={(e) =>
-													field.onChange(e.target.value.replace(/[^0-9]/g, ''))
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name='angleZ'
-								render={({ field }) => (
-									<FormItem>
-										<FormControl>
-											<Input
-												{...field}
-												placeholder='Enter the rotation angle around the Z axis'
-												onChange={(e) =>
-													field.onChange(e.target.value.replace(/[^0-9]/g, ''))
+													field.onChange(
+														e.target.value.replace(/[^0-9.-]/g, ''),
+													)
 												}
 											/>
 										</FormControl>

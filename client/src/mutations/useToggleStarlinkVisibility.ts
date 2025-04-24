@@ -1,23 +1,22 @@
+import { LoadedStarlinkInfo } from '@/actions/getLoadedStarlinksInfo';
+import { toggleStarlinkVisibility } from '@/actions/toggleStarlinkVisibility';
+import { QueryKeys } from '@/constants/actions.const';
+import { getQueryClient } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { loadStarlinks } from '@/actions/loadStarlinks';
-import { getQueryClient } from '@/lib/queryClient';
-import { QueryKeys } from '@/constants/actions.const';
-import { LoadedStarlinkInfo } from '@/actions/getLoadedStarlinksInfo';
-
-export const useLoadStarlinks = () => {
+export const useToggleStarlinkVisibility = () => {
 	const queryClient = getQueryClient();
 
 	return useMutation({
-		mutationFn: (starlinksIds: string) => loadStarlinks(starlinksIds),
-		onSuccess: () => {
+		mutationFn: toggleStarlinkVisibility,
+		onSuccess: ({ starlinkId }) => {
 			queryClient.invalidateQueries({
 				queryKey: [QueryKeys.GET_LOADED_STARLINKS_INFO],
 			});
-			toast.success('Starlinks have been loaded correctly');
+			toast.success(`Toggle starlink ${starlinkId} visibility`);
 		},
-		onMutate: async (starlinkIds) => {
+		onMutate: async (starlinkId) => {
 			await queryClient.cancelQueries({
 				queryKey: [QueryKeys.GET_LOADED_STARLINKS_INFO],
 			});
@@ -26,16 +25,13 @@ export const useLoadStarlinks = () => {
 				QueryKeys.GET_LOADED_STARLINKS_INFO,
 			]);
 
-			const ids = starlinkIds.split(',').map((id) => parseInt(id.trim(), 10));
+			const starlinks = previousState?.map((starlink) => {
+				if (starlink.id === starlinkId) {
+					return { ...starlink, visible: !starlink.visible };
+				}
 
-			const starlinks = [
-				...(previousState ?? []),
-				...ids.map((id) => ({
-					id,
-					visible: true,
-					trajectoryVisible: false,
-				})),
-			];
+				return starlink;
+			});
 
 			queryClient.setQueryData<LoadedStarlinkInfo[]>(
 				[QueryKeys.GET_LOADED_STARLINKS_INFO],
