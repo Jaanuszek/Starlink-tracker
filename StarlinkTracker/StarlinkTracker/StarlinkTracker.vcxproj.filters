@@ -321,6 +321,7 @@
     <None Include="assets\geoJSON\countriesGeoJSON.json" />
     <None Include="shaders\countriesBorderShader.shader" />
     <None Include="shaders\starlinkTrajectoryShader.shader" />
+    <None Include="shaders\starlinkModelShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\earthMap.png">

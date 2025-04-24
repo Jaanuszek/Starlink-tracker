@@ -32,7 +32,6 @@ void HttpServer::setupEndpoints() {
 
         if (data.contains("starlinkIds") && data["starlinkIds"].is_array()) {
             std::vector<int> starlinkIds = data["starlinkIds"];
-
             fetchApi satelliteDataAPI;
             JSONParser jsonParser;
 

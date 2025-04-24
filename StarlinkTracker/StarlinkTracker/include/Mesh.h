@@ -10,8 +10,15 @@
 #include "Texture.h"
 #include "JSONParser.h"
 #include "DebugLogs.h"
+#include "Shader.h"
 
-// TODO add camera and textures here
+// Struct that contains all the mesh informations vertices, indices and textures
+struct meshStruct
+{
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<textureStruct> textures;
+};
 
 class Mesh
 {
@@ -22,9 +29,11 @@ private:
     Texture texture;
 public:
     Mesh() : vao(), vbo(), ebo(), texture() {}
+    // Mesh with signle texture
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, const std::string& pathToTexture);
+    // Mesh with multiple textures
+    Mesh(meshStruct& meshData);
     Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate = false);
-    Mesh(std::map<unsigned int, std::vector<VertexPosOnly>>& vertices);
     ~Mesh();
     void Draw(GLenum primitiveType);
     void DrawWithoutEBO(GLenum primitiveType, unsigned int count);

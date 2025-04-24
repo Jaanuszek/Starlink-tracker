@@ -11,8 +11,17 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, co
     vbo.AddVertexStructAttribs();
     vbo.Unbind();
     vao.Unbind();
+}
 
-    texture.Bind(0);
+Mesh::Mesh(meshStruct& meshData) :
+    vbo(meshData.vertices), ebo(meshData.indices), texture(meshData.textures)
+{
+    vao.Bind();
+    vbo.Bind();
+    ebo.Bind();
+    vbo.AddVertexStructAttribs();
+    vbo.Unbind();
+    vao.Unbind();
 }
 
 Mesh::Mesh(std::vector<VertexPosOnly>& vertices, bool dynamicUpdate)
@@ -37,9 +46,11 @@ Mesh::~Mesh()
 
 void Mesh::Draw(GLenum primitiveType)
 {
+    texture.BindAllTextures();
     vao.Bind();
     GLCall(glDrawElements(primitiveType, ebo.getCountBytes(), GL_UNSIGNED_INT, 0));
     vao.Unbind();
+    texture.UnbindAllTextures();
 }
 
 void Mesh::DrawWithoutEBO(GLenum primitiveType, unsigned int count)
