@@ -21,8 +21,8 @@ int height = 600;
 
 bool showSatelliteWindow = false;
 
-float rotationAngle = 0.0f;
-float rotationSpeed = 0.05f;
+float tiltRadians = glm::radians(-23.5f);
+float earthRotationAngle = 0.0f;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -85,8 +85,12 @@ int main() {
 
         glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetFrameBufferWidth() / (GLfloat)mainWindow.GetFrameBufferHeight(), 0.1f, 100.f);
         glm::mat4 earthModel = glm::mat4(1.0f);
-        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate 180 degrees to change coordinates upside down 
+        earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        earthModel = glm::rotate(earthModel, tiltRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+        earthModel = glm::rotate(earthModel, glm::radians(earthRotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 bordersModel = glm::mat4(1.0f);
+        bordersModel = glm::rotate(bordersModel, tiltRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+        bordersModel = glm::rotate(bordersModel, glm::radians(earthRotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
         // Creation of Shaders
@@ -152,6 +156,16 @@ int main() {
 
             // You can speed up the starlinks here
             simulationTime += deltaTime * starlinkSpeed;
+            earthRotationAngle += deltaTime * starlinkSpeed;
+
+            earthModel = glm::mat4(1.0f);
+            earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            earthModel = glm::rotate(earthModel, tiltRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+            earthModel = glm::rotate(earthModel, glm::radians(earthRotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            bordersModel = glm::mat4(1.0f);
+            bordersModel = glm::rotate(bordersModel, tiltRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+            bordersModel = glm::rotate(bordersModel, glm::radians(-earthRotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            bordersModel = glm::scale(bordersModel, glm::vec3(-1.0f, 1.0f, 1.0f));
 
             camera.ProcessKeyboardInput(deltaTime);
             camera.ProcessMouseInput(mainWindow.GetMouseXDelta(), mainWindow.GetMouseYDelta());
@@ -160,10 +174,6 @@ int main() {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
-            rotationAngle += rotationSpeed;
-            glm::mat4 View = glm::mat4(1.0f);
-            View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
-            View = glm::rotate(View, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
