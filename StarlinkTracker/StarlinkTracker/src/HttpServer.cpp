@@ -7,12 +7,14 @@ HttpServer::HttpServer(bool* isCountriesBorderVisiblePtr,
     std::string apiKey,
     std::tm localTimeRef,
     Camera& cameraRef,
-    std::vector<std::unique_ptr<Starlink>>& starlinksRef)
+    std::vector<std::shared_ptr<Starlink>>& starlinksRef,
+    bool* isStarlinkHighlighted)
     : isCountriesBorderVisible(isCountriesBorderVisiblePtr),
     apiKey(apiKey),
     localTime(localTimeRef),
     camera(cameraRef),
-    starlinks(starlinksRef)
+    starlinks(starlinksRef),
+    isStarlinkHighligh(isStarlinkHighlighted)
 {
 }
 
@@ -92,10 +94,34 @@ void HttpServer::setupEndpoints() {
         }
         });
 
-    svr.Post("/Highlight", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/Highlight", [this](const httplib::Request& req, httplib::Response& res) {
         json data = json::parse(req.body);
 
-        int starlinkId = data.value("starlinkId", 0);
+        int starlinkID = data.value("starlinkId", 0);
+        if (starlinkID == 0)
+        {
+            *isStarlinkHighligh = false;
+            camera.setDefaultViewPort();
+            return;
+        }
+        std::vector<std::shared_ptr<Starlink>>::iterator it;
+        it = std::find_if(starlinks.begin(), starlinks.end(),
+            [starlinkID](const std::shared_ptr<Starlink>& s) {
+                return s->getSatelliteInfo().satid == starlinkID;
+            });
+        if (it == starlinks.end())
+        {
+            json error = {
+                {"error", "Starlink not found"}
+            };
+            res.status = 404;
+            res.set_content(error.dump(4), "application/json");
+            return;
+        }
+        const Starlink* starlink = it->get();
+        *isStarlinkHighligh = true;
+        camera.setStarlinkToHiglight(*starlink);
+
 
         res.set_content(json{ {"message", "Starlink highlighted"} }.dump(), "application/json");
         });
@@ -154,7 +180,7 @@ void HttpServer::setupEndpoints() {
         int id = std::stoi(req.matches[1]);
 
         auto it = std::find_if(starlinks.begin(), starlinks.end(),
-            [id](const std::unique_ptr<Starlink>& s) {
+            [id](const std::shared_ptr<Starlink>& s) {
                 return s->getSatelliteInfo().satid == id;
             });
 
