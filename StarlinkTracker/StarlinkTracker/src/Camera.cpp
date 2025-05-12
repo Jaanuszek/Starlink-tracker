@@ -128,7 +128,7 @@ void Camera::highlightStarlink()
 		glm::vec3(1,0,0),
 		glm::vec3(0,0,1)
 	};
-	// Here choose the best up vector candidat 
+	// Here choose the best up vector candidate
 	for (auto& candidate : candidateUps) {
 		if (glm::abs(glm::dot(dirFromCenter, candidate)) < 0.95f) {
 			upVec = candidate;

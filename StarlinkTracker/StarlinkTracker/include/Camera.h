@@ -8,8 +8,6 @@
 #include <GLFW/glfw3.h>;
 #include "InputManager.h"
 
-//class Starlink;
-
 class Camera
 {
 public:

@@ -62,7 +62,6 @@ glm::vec3 Starlink::changeCoordsToSphere(float lon, float lat, float radius) con
     float x = radius * sin(phi) * cos(theta);
     float y = radius * cos(phi);
     float z = radius * sin(phi) * sin(theta);
-    std::cout << "x: " << x << "y: " << y << "z: " << z << std::endl;
     return { x, y, z };
 }
 
@@ -73,7 +72,6 @@ void Starlink::createTrajectoryLine() {
     float orbitalRadius = 6378.1 + satelliteInfo.altitude; // earth radius plus satellite altitude [KM]
     float earthGravitationalConstant = 398600.4418; // [km^3/s^2]
     period = 2 * M_PI * sqrt((pow(orbitalRadius, 3)) / earthGravitationalConstant);
-    //std::cout << "Period: " << period / 60.0f << " minutes" << std::endl;
     for (int i = 0; i < 1000; i++)
     {
         libsgp4::DateTime currentTime = startTime.AddSeconds(i * period / 100);
