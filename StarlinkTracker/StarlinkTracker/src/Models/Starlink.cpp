@@ -62,6 +62,7 @@ glm::vec3 Starlink::changeCoordsToSphere(float lon, float lat, float radius) con
     float x = radius * sin(phi) * cos(theta);
     float y = radius * cos(phi);
     float z = radius * sin(phi) * sin(theta);
+    std::cout << "x: " << x << "y: " << y << "z: " << z << std::endl;
     return { x, y, z };
 }
 

@@ -31,12 +31,10 @@ void HttpServer::setupEndpoints() {
 
     svr.Post("/LoadStarlinks", [this](const httplib::Request& req, httplib::Response& res) {
         json data = json::parse(req.body);
-
         if (data.contains("starlinkIds") && data["starlinkIds"].is_array()) {
             std::vector<int> starlinkIds = data["starlinkIds"];
             fetchApi satelliteDataAPI;
             JSONParser jsonParser;
-
             for (int id : starlinkIds) {
                 if (starlinkVisibilityMap.find(id) == starlinkVisibilityMap.end()) {
                     std::string satID = std::to_string(id);
@@ -50,7 +48,6 @@ void HttpServer::setupEndpoints() {
                     }
                 }
             }
-
             res.set_content(json{ {"message", "Starlinks loaded successfully"}, {"count", satellites.size()} }.dump(), "application/json");
         }
         else {

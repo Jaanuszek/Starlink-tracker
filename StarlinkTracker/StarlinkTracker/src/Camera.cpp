@@ -113,32 +113,29 @@ void Camera::setStarlinkToHiglight(const Starlink& starlink)
 
 void Camera::highlightStarlink()
 {
-	//Satellite starlinkInfo = starlink.getSatelliteInfo();
-	//higlighted_starlink = &starlink;
 	glm::vec3 pos = higlighted_starlink->changeCoordsToSphere();
-	//std::cout << pos.x << " " << pos.y << " " << pos.z << std::endl;
-	pos = glm::vec3(pos.x/100.0f, pos.y/100.0f, pos.z/100.0f);
-	//satelliteInfo.latitude = geodetic.latitude * (180.0f / M_PI);
-	//satelliteInfo.longitude = geodetic.longitude * (180.0f / M_PI);
-	//satelliteInfo.altitude = geodetic.altitude;
-	//float yawRad = glm::radians(yaw);
-	//float pitchRad = glm::radians(pitch);
-	glm::vec3 temp_target = pos;
-	glm::vec3 temp_position;
+	pos = pos / 100.0f;
 
-	glm::vec3 offset(0.0f, 0.0f, 1.0f);
-	glm::vec3 cameraPos = pos + offset;
-	//glm::vec3 cameraPos = position;
+	 float offset = 1.0f;
 
-
-	//temp_position.x = target.x + 2 * cos(pitchRad) * cos(yawRad);
-	//temp_position.y = target.y + 2 * sin(pitchRad);
-	//temp_position.z = target.z + 2 * cos(pitchRad) * sin(yawRad);
-	glm::highp_vec3 temp_front = glm::normalize(pos - cameraPos);
-	glm::highp_vec3 temp_right = glm::normalize(glm::cross(temp_front, worldUp));
-	glm::highp_vec3 temp_up = glm::normalize(glm::cross(temp_right, temp_front));
-	//currentLookAt = glm::lookAt(cameraPos, pos + glm::vec3(0.0f,0.0f,-1.0f), up);
-	currentLookAt = glm::lookAt(cameraPos, pos, up);
+	glm::vec3 dirFromCenter = glm::normalize(pos);
+	glm::vec3 cameraPos = pos + dirFromCenter * offset;
+	glm::vec3 upVec = glm::vec3(0.0f, 1.0f, 0.0f);
+	// The problem was, sometimes camera Pos was parallel to up vector and it caused some undefined behaviours
+	// If dirFromcenter is close to be parallel to upVec, just change upVec to different axis
+	glm::vec3 candidateUps[] = {
+		glm::vec3(0,1,0),
+		glm::vec3(1,0,0),
+		glm::vec3(0,0,1)
+	};
+	// Here choose the best up vector candidat 
+	for (auto& candidate : candidateUps) {
+		if (glm::abs(glm::dot(dirFromCenter, candidate)) < 0.95f) {
+			upVec = candidate;
+			break;
+		}
+	}
+	currentLookAt = glm::lookAt(cameraPos, glm::vec3(0.0f,0.0f,0.0f), upVec);
 }
 
 void Camera::setDefaultViewPort()

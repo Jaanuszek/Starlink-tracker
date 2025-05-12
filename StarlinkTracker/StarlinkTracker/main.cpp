@@ -27,7 +27,7 @@ float earthRotationAngle = 0.0f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
-float starlinkSpeed = 360.0f;
+float starlinkSpeed = 30.0f;
 
 bool isCountriesBorderVisible = true;
 bool isStarlinkHiglighted = false;
@@ -158,7 +158,7 @@ int main() {
             // You can speed up the starlinks here
             simulationTime += deltaTime * starlinkSpeed;
             earthRotationAngle += deltaTime * starlinkSpeed;
-            if (isStarlinkHiglighted)
+            if (isStarlinkHiglighted == true)
             {
                 camera.highlightStarlink();
             }
