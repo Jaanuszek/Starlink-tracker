@@ -1,10 +1,11 @@
 ﻿
 #include "../include/Camera.h"
-
 Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch, GLfloat startMoveSpeed, GLfloat startTurnSpeed)
 	: position(startPosition), worldUp(startUp), yaw(startYaw), pitch(startPitch), front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(startMoveSpeed), mouseSensitivity(startTurnSpeed), target(glm::vec3(0.0f, 0.0f, 0.0f)) {
 	UpdateCameraVectors();
 	UpdateCameraVectorsBaseOnEndpoint();
+	defaultLookAt = glm::lookAt(position, position + front, up);;
+	currentLookAt = defaultLookAt;
 }
 
 Camera::~Camera() {
@@ -100,6 +101,44 @@ void Camera::MoveCamera(GLfloat xChange, GLfloat yChange) {
 	UpdateCameraVectorsBaseOnEndpoint();
 }
 
-glm::mat4 Camera::GetViewMatrix() {
-	return glm::lookAt(position, position + front, up);
+glm::highp_mat4 Camera::GetViewMatrix() {
+	//return glm::lookAt(position, position + front, up);
+	return currentLookAt;
+}
+
+void Camera::setStarlinkToHiglight(const Starlink& starlink)
+{
+	higlighted_starlink = &starlink;
+}
+
+void Camera::highlightStarlink()
+{
+	glm::vec3 pos = higlighted_starlink->changeCoordsToSphere();
+	pos = pos / 100.0f;
+
+	 float offset = 1.0f;
+
+	glm::vec3 dirFromCenter = glm::normalize(pos);
+	glm::vec3 cameraPos = pos + dirFromCenter * offset;
+	glm::vec3 upVec = glm::vec3(0.0f, 1.0f, 0.0f);
+	// The problem was, sometimes camera Pos was parallel to up vector and it caused some undefined behaviours
+	// If dirFromcenter is close to be parallel to upVec, just change upVec to different axis
+	glm::vec3 candidateUps[] = {
+		glm::vec3(0,1,0),
+		glm::vec3(1,0,0),
+		glm::vec3(0,0,1)
+	};
+	// Here choose the best up vector candidate
+	for (auto& candidate : candidateUps) {
+		if (glm::abs(glm::dot(dirFromCenter, candidate)) < 0.95f) {
+			upVec = candidate;
+			break;
+		}
+	}
+	currentLookAt = glm::lookAt(cameraPos, glm::vec3(0.0f,0.0f,0.0f), upVec);
+}
+
+void Camera::setDefaultViewPort()
+{
+	currentLookAt = defaultLookAt;
 }

@@ -11,7 +11,9 @@
 
 class HttpServer {
 public:
-    HttpServer(bool* isCountriesBorderVisiblePtr, std::string apiKey, std::tm localTimeRef, Camera& cameraRef, std::vector<std::unique_ptr<Starlink>>& starlinksRef);
+    HttpServer(bool* isCountriesBorderVisiblePtr, std::string apiKey, 
+        std::tm localTimeRef, Camera& cameraRef, std::vector<std::shared_ptr<Starlink>>& starlinksRef,
+        bool* isStarlinkHighlighted);
     ~HttpServer();
 
     void start();
@@ -34,12 +36,13 @@ private:
     httplib::Server svr;
 
     bool* isCountriesBorderVisible;
+    bool* isStarlinkHighligh;
     std::vector<Satellite> satellites;
     std::string apiKey;
     std::tm localTime;
 
     std::unordered_map<int, std::pair<bool, bool>> starlinkVisibilityMap;
-    std::vector<std::unique_ptr<Starlink>>& starlinks;
+    std::vector<std::shared_ptr<Starlink>>& starlinks;
 
     Camera& camera;
 };

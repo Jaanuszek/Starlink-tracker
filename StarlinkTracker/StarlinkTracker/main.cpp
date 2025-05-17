@@ -30,6 +30,7 @@ GLfloat lastTime = 0.0f;
 float starlinkSpeed = 30.0f;
 
 bool isCountriesBorderVisible = true;
+bool isStarlinkHiglighted = false;
 
 int main() {
     Window mainWindow = Window(800, 600);
@@ -106,13 +107,13 @@ int main() {
         };
 
         // Vector containing all starlinks
-        std::vector<std::unique_ptr<Starlink>> starlinks;
+        std::vector<std::shared_ptr<Starlink>> starlinks;
         // Map containing all starlinks (it helps us checking wheter the satellite is already in the map or not)
         std::unordered_map<int, Satellite> SatellitesInfoMap;
 
         std::vector<Satellite> SatellitesInfoVec;
 
-        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time, camera, starlinks);
+        HttpServer server(&isCountriesBorderVisible, API_KEY, local_time, camera, starlinks, &isStarlinkHiglighted);
         server.start();
 
         GLfloat simulationTime = 0.0f;
@@ -134,7 +135,7 @@ int main() {
                     // Check if the satellite is already in the map
                     if (SatellitesInfoMap.find(satelliteInfo.satid) == SatellitesInfoMap.end()) {
                         SatellitesInfoMap[satelliteInfo.satid] = satelliteInfo;
-                        starlinks.push_back(std::make_unique<Starlink>(satelliteInfo, local_time));
+                        starlinks.push_back(std::make_shared<Starlink>(satelliteInfo, local_time));
                     }
                 }
                 server.clearSateliteVector();
@@ -157,7 +158,10 @@ int main() {
             // You can speed up the starlinks here
             simulationTime += deltaTime * starlinkSpeed;
             earthRotationAngle += deltaTime * starlinkSpeed;
-
+            if (isStarlinkHiglighted == true)
+            {
+                camera.highlightStarlink();
+            }
             earthModel = glm::mat4(1.0f);
             earthModel = glm::rotate(earthModel, glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             earthModel = glm::rotate(earthModel, tiltRadians, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -215,7 +219,6 @@ int main() {
                 if (!visible) {
                     continue;
                 }
-
 
                 // its the same as above (f.e shader.updateUniformMat4fv itp..)
                 // but for model it is implemented to work like this

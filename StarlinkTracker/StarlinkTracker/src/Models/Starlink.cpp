@@ -7,6 +7,7 @@ Starlink::Starlink(const Satellite& satelliteInfo, const std::tm& local_time)
 {
     libsgp4::Vector position = eci.Position();
     libsgp4::Vector velocity = eci.Velocity();
+    cartesianStarlinkPosition = glm::vec3(position.x, position.y, position.z);
     std::cout << "Satellite name: " << satelliteInfo.satname << std::endl;
     std::cout << "Position (km): x = " << position.x << ", y = " << position.y << ", z = " << position.z << std::endl;
     std::cout << "Velocity (km/s): x = " << velocity.x << ", y = " << velocity.y << ", z = " << velocity.z << std::endl;
@@ -44,7 +45,8 @@ void Starlink::UpdatePosition(float elapsedSeconds) {
     model = glm::translate(model, changeCoordsToSphere());
 }
 
-glm::vec3 Starlink::changeCoordsToSphere() {
+glm::vec3 Starlink::changeCoordsToSphere() const 
+{
     float theta = satelliteInfo.longitude * M_PI / 180.0f;
     float phi = (90.0f - satelliteInfo.latitude) * M_PI / 180.0f;
     float x = radius * sin(phi) * cos(theta);
@@ -53,7 +55,7 @@ glm::vec3 Starlink::changeCoordsToSphere() {
     return { x, y, z };
 }
 
-glm::vec3 Starlink::changeCoordsToSphere(float lon, float lat, float radius)
+glm::vec3 Starlink::changeCoordsToSphere(float lon, float lat, float radius) const
 {
     float theta = lon * M_PI / 180.0f;
     float phi = (90.0f - lat) * M_PI / 180.0f;
@@ -70,7 +72,6 @@ void Starlink::createTrajectoryLine() {
     float orbitalRadius = 6378.1 + satelliteInfo.altitude; // earth radius plus satellite altitude [KM]
     float earthGravitationalConstant = 398600.4418; // [km^3/s^2]
     period = 2 * M_PI * sqrt((pow(orbitalRadius, 3)) / earthGravitationalConstant);
-    //std::cout << "Period: " << period / 60.0f << " minutes" << std::endl;
     for (int i = 0; i < 1000; i++)
     {
         libsgp4::DateTime currentTime = startTime.AddSeconds(i * period / 100);
