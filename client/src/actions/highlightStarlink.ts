@@ -2,10 +2,10 @@
 
 import { fetcher } from '@/lib/fetcher';
 
-export const highlightStarlink = async (starlinkId: string) => {
+export const highlightStarlink = async (starlinkId: number) => {
 	const response = await fetcher<string>('Highlight', {
 		body: {
-			starlinkId: parseInt(starlinkId.trim(), 10),
+			starlinkId,
 		},
 	});
 

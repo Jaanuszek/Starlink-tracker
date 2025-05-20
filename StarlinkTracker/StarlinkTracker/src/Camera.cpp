@@ -99,6 +99,8 @@ void Camera::MoveCamera(GLfloat xChange, GLfloat yChange) {
 		pitch = -89.0f;
 	}
 	UpdateCameraVectorsBaseOnEndpoint();
+
+	currentLookAt = glm::lookAt(position, target, up);
 }
 
 glm::highp_mat4 Camera::GetViewMatrix() {

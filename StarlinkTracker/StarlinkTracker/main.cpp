@@ -19,18 +19,20 @@
 int width = 800;
 int height = 600;
 
-bool showSatelliteWindow = false;
-
 float tiltRadians = glm::radians(-23.5f);
 float earthRotationAngle = 0.0f;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
-float starlinkSpeed = 30.0f;
-
 bool isCountriesBorderVisible = true;
 bool isStarlinkHiglighted = false;
+
+const float EARTH_ROTATION_PERIOD = 86164.0f;
+const float EARTH_DEGREES_PER_SECOND = 360.0f / EARTH_ROTATION_PERIOD;
+
+const float STARLINK_ORBIT_PERIOD = 5700.0f;
+const float STARLINK_DEGREES_PER_SECOND = 360.0f / STARLINK_ORBIT_PERIOD;
 
 int main() {
     Window mainWindow = Window(800, 600);
@@ -52,7 +54,6 @@ int main() {
         return -1;
     }
 
-    std::vector<std::string> satIDs = { "63329", "63307", "62966", "61262" };
     std::map<std::string, std::string> satelitesData;
 
     Model starlinkModel("assets/Models/starlink/starlink.obj", "shaders/starlinkModelShader.shader");
@@ -156,8 +157,8 @@ int main() {
             FPS = mainWindow.CountFPSandMS(previousTime, currentTime, timeDiff, frameCounter);
 
             // You can speed up the starlinks here
-            simulationTime += deltaTime * starlinkSpeed;
-            earthRotationAngle += deltaTime * starlinkSpeed;
+            simulationTime += deltaTime * STARLINK_DEGREES_PER_SECOND * 1436;
+            earthRotationAngle += deltaTime * EARTH_DEGREES_PER_SECOND * 1436;
             if (isStarlinkHiglighted == true)
             {
                 camera.highlightStarlink();
@@ -201,10 +202,6 @@ int main() {
 
             const auto& visibilityMap = server.getStarlinkVisibilityMap();
 
-            // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // Jakby� chcia� usuwa� starlinki o konrketnym id, to usu� je z vectora "starlinks"
-            // oraz usu� pozycje z mapy "SatellitesInfoMap"
-            // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             for (auto& starlink : starlinks) {
                 int id = starlink->getSatelliteInfo().satid;
 

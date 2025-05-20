@@ -1,13 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { highlightStarlink } from '@/actions/highlightStarlink';
+import { unhighlightStarlink } from '@/actions/unhighlightStarlink';
 
-export const useHighlightStarlink = () => {
+export const useUnhighlightStarlink = () => {
 	return useMutation({
-		mutationFn: (startlinkId: number) => highlightStarlink(startlinkId),
+		mutationFn: () => unhighlightStarlink(),
 		onSuccess: (_, starlinkId) => {
-			toast.success(`Highlight starlink with ID: ${starlinkId}`);
+			toast.success(`Unhighlight starlink with ID: ${starlinkId}`);
 		},
 		onError: (error) => {
 			toast.error(error.message ?? 'An unknown error occured.');
