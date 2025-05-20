@@ -95,12 +95,6 @@ void HttpServer::setupEndpoints() {
         json data = json::parse(req.body);
 
         int starlinkID = data.value("starlinkId", 0);
-        if (starlinkID == 0)
-        {
-            *isStarlinkHighligh = false;
-            camera.setDefaultViewPort();
-            return;
-        }
         std::vector<std::shared_ptr<Starlink>>::iterator it;
         it = std::find_if(starlinks.begin(), starlinks.end(),
             [starlinkID](const std::shared_ptr<Starlink>& s) {
