@@ -123,6 +123,13 @@ void HttpServer::setupEndpoints() {
         res.set_content(json{ {"message", "Starlink highlighted"} }.dump(), "application/json");
         });
 
+    svr.Post("/Unhighlight", [this](const httplib::Request& req, httplib::Response& res) {
+        *isStarlinkHighligh = false;
+        camera.setDefaultViewPort();
+
+        res.set_content(json{ {"message", "Starlink unhighlighted"} }.dump(), "application/json");
+        });
+
     svr.Post("/ToggleCountriesBorder", [this](const httplib::Request& req, httplib::Response& res) {
         *isCountriesBorderVisible = !(*isCountriesBorderVisible);
 
