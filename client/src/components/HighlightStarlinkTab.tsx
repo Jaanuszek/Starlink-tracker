@@ -1,53 +1,71 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
 import { useHighlightStarlink } from '@/mutations/useHighlightStarlink';
-import {
-	HighlightStarlinkData,
-	highlightStartlinkSchema,
-} from '@/schemas/highlightStarlinkSchema';
+import { useGetLoadedStarlinksInfo } from '@/queries/useGetLoadedStarlinksInfo';
 import { Card, CardContent } from './ui/card';
 import { TabsContent } from './ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form';
-import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { Label } from './ui/label';
+import { useState } from 'react';
+import { useUnhighlightStarlink } from '@/mutations/useUnhighlightStarlink';
 
 export const HighlighteStarlinkTab = () => {
-	const form = useForm({
-		resolver: zodResolver(highlightStartlinkSchema),
-		defaultValues: { starlinkId: '' },
-	});
+	const [highlightedStarlinkId, setHighlightedStarlinkId] = useState<
+		number | null
+	>(null);
 
-	const { mutateAsync: enableStarlink, isPending } = useHighlightStarlink();
+	const { data: loadedStarlinks } = useGetLoadedStarlinksInfo();
 
-	const handleSubmit = async (data: HighlightStarlinkData) => {
-		await enableStarlink(data.starlinkId);
+	const { mutateAsync: highlightStarlink, isPending: isHighlighting } =
+		useHighlightStarlink();
+	const { mutateAsync: unhighlightStarlink, isPending: isUnhighlighting } =
+		useUnhighlightStarlink();
+
+	const handleHighlight = async (starlinkId?: number) => {
+		if (!starlinkId) {
+			await unhighlightStarlink();
+			setHighlightedStarlinkId(null);
+			return;
+		}
+
+		await highlightStarlink(starlinkId);
+		setHighlightedStarlinkId(starlinkId);
+	};
+
+	const renderCard = () => {
+		if (!highlightedStarlinkId) {
+			return (
+				<>
+					{loadedStarlinks?.map((starlink) => (
+						<div
+							key={starlink.id}
+							className='flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm'
+						>
+							<Label>Starlink with ID: {starlink.id}</Label>
+							<Button
+								disabled={isHighlighting}
+								onClick={() => handleHighlight(starlink.id)}
+							>
+								Highlight
+							</Button>
+						</div>
+					))}
+				</>
+			);
+		}
+
+		return (
+			<div className='flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm'>
+				<Label>Starlink with ID: {highlightedStarlinkId} is highlighted</Label>
+				<Button disabled={isUnhighlighting} onClick={() => handleHighlight()}>
+					Unhighlight
+				</Button>
+			</div>
+		);
 	};
 
 	return (
 		<TabsContent value='highlight'>
 			<Card>
-				<CardContent>
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(handleSubmit)}>
-							<FormField
-								control={form.control}
-								name='starlinkId'
-								render={({ field }) => (
-									<FormItem>
-										<FormControl>
-											<Input {...field} placeholder='Enter ID, f.e. 123' />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<Button disabled={isPending} type='submit' className='mt-2'>
-								Highlight starlink
-							</Button>
-						</form>
-					</Form>
-				</CardContent>
+				<CardContent>{renderCard()}</CardContent>
 			</Card>
 		</TabsContent>
 	);
