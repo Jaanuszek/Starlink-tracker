@@ -95,12 +95,6 @@ void HttpServer::setupEndpoints() {
         json data = json::parse(req.body);
 
         int starlinkID = data.value("starlinkId", 0);
-        if (starlinkID == 0)
-        {
-            *isStarlinkHighligh = false;
-            camera.setDefaultViewPort();
-            return;
-        }
         std::vector<std::shared_ptr<Starlink>>::iterator it;
         it = std::find_if(starlinks.begin(), starlinks.end(),
             [starlinkID](const std::shared_ptr<Starlink>& s) {
@@ -121,6 +115,13 @@ void HttpServer::setupEndpoints() {
 
 
         res.set_content(json{ {"message", "Starlink highlighted"} }.dump(), "application/json");
+        });
+
+    svr.Post("/Unhighlight", [this](const httplib::Request& req, httplib::Response& res) {
+        *isStarlinkHighligh = false;
+        camera.setDefaultViewPort();
+
+        res.set_content(json{ {"message", "Starlink unhighlighted"} }.dump(), "application/json");
         });
 
     svr.Post("/ToggleCountriesBorder", [this](const httplib::Request& req, httplib::Response& res) {
