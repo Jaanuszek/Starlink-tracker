@@ -12,9 +12,9 @@ For now, the program should be run in `Release` configuration on `x64` platform
 
 ### Libcurl build
 
-In case of libcurl erros, download it and build it yourself.
+In case of libcurl errors, download it and build it yourself.
 
-Download it from here [curl github](https://github.com/curl/curl) and then unzip/untar it. Then use this command (make sure you have openssl!) and change the paths to match the location of the files on your computer.
+Download it from here [curl github](https://github.com/curl/curl) and then unzip/untar it. Then use this command (make sure you have OpenSSL!) and change the paths to match the location of the files on your computer.
 
 ``` cmake
 cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCURL_STATICLIB=ON -DCURL_USE_LIBPSL=OFF -DCURL_USE_OPENSSL=ON -DOPENSSL_ROOT_DIR="C:\Program Files\OpenSSL-Win64" -DOPENSSL_INCLUDE_DIR="PATH_TO_OPENSSL_INCLUDE_DIR" -DOPENSSL_CRYPTO_LIBRARY="PATH_TO_OPENSSL_LIBCRYPTO_LIB" -DOPENSSL_SSL_LIBRARY="PATH_TO_OPENSSL_LIBSSL_LIB"
@@ -34,11 +34,11 @@ Finally, copy `build/lib/Release/libcurl.lib` to `StarlinkTracker/StarlinkTracke
 
 ### Main App (OPENGL)
 
-In order to run the application, go to `StarlinkTracker`, and run `StarlinkTracker.sln` solution. Everything in Visual Studio should be all set up (We used macros for including libraries and include folders) for building and executing the app. In case of any problems, right click the `StarlinkTracker` project in Visual Studio and go to `Properties`:
+In order to run the application, go to `StarlinkTracker`, and run `StarlinkTracker.sln` solution. Everything in Visual Studio should be all set up (We used macros for including libraries and include folders) for building and executing the app. In case of any problems, right-click the `StarlinkTracker` project in Visual Studio and go to `Properties`:
 
 ![PROJ_PROPERTIES](README_IMG/PROJ_PROPERTIES.png)
 
-Then go to `VC++ Directories` and make sure you have all the files (include and library) that are in the given paths inside `Include Directories` and `Library Directories`. Here's an example of how it should look like:
+Then go to `VC++ Directories` and make sure you have all the files (include and library) that are in the given paths inside `Include Directories` and `Library Directories`. Here's an example of how it should look:
 
 ![INCLUDE_DIRS](README_IMG/INCLUDE_DIRS.png)
 
@@ -50,9 +50,9 @@ Then go to `VC++ Directories` and make sure you have all the files (include and 
 > Or change it to a path that points to that folder on your computer
 
 > [!IMPORTANT]
-> You must generate your API key on [N2YO](https://www.n2yo.com/), and store it in `apiKey.txt` file in the same directory where `main.cpp` is stored. Program without API KEY will not work.
+> You must generate your API key on [N2YO](https://www.n2yo.com/), and store it in `apiKey.txt` file in the same directory where `main.cpp` is stored. A program without an API KEY will not work.
 
-If You check everything, and your IDE is not complaining about anything, you can simpli cklick `f5` and it should build and run the application.
+If you check everything, and your IDE is not complaining about anything, you can simply click `f5` and it should build and run the application.
 
 ### Web App (NEXT.JS)
 
@@ -60,7 +60,7 @@ TODO
 
 ## Application
 
-The application after execution shows the rotating earth with country borders. In order to add starlinks/satelites, you have to run the Web APP.
+The application, after execution, shows the rotating Earth with country borders. To add starlinks or satellites, you must run the Web App.
 
 ![EARTH_ROTATIN](README_IMG/Animation.gif)
 
@@ -68,19 +68,19 @@ The Web app looks like this:
 
 ![WEB_APP_PREVIEW](README_IMG/WEB_APP_PREVIEW.png)
 
-To add a starlink/satelite, find it ID on [N2YO](https://www.n2yo.com/) and paste it to `Load Starlinks` tab, and click `Load starlinks` button:
+To add a Starlink/satellite, find its ID on [N2YO](https://www.n2yo.com/) and paste it to the `Load Starlinks` tab, and click the `Load starlinks` button:
 
 ![ADDED_STARLINKS](README_IMG/ADDED_STARLINKS.gif)
 
-You can even enable satelites trajectory line!
+You can even enable the satellite trajectory line!
 
 ![STARLINKS_TRAJECTORY](README_IMG/STARLINK_TRAJECTORY.gif)
 
-Camera can be rotated, and the user can point the camera at particular satellite!
+The camera can be rotated, and the user can point the camera at a particular satellite!
 
 ![HIGHLIGHT_STARLINK](README_IMG/HIGHLIGHT_STARLINK.gif)
 
-The web app also allows to toggle countries border line and get satellite info:
+The web app also allows you to toggle the country's border line and get satellite info:
 
 ![SATELITE_INFO](README_IMG/StarlinkINFO.png)
 
@@ -95,7 +95,7 @@ The web app also allows to toggle countries border line and get satellite info:
 * [LibCurl](https://curl.se/libcurl/c/) - for fetching API data
 * [nlohmannJson](https://github.com/nlohmann/json) - JSON parser
 * [N2YO](https://www.n2yo.com/) - as API for sattelites info
-* [GeoJSON](https://geojson.org/) - as JSON type for parsing countries border data
+* [GeoJSON](https://geojson.org/) - as a JSON type for parsing countries border data
 * [Natural Earth](https://www.naturalearthdata.com/) - for getting GeoJSON data about countries borders
 * [libsgp4](https://github.com/dnwrnr/sgp4) - For handling the TLE2 data
 * [stb_image](https://github.com/nothings/stb) - For Image processing
