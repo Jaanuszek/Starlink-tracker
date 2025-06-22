@@ -6,9 +6,9 @@ For now, the program should be run in `Release` configuration on `x64` platform
 
 ### Requirements
 
-* Visual Studio 2022 with C++ packages
-* OpenSSL
-* Account on [N2YO](https://www.n2yo.com/), to generate API key
+- Visual Studio 2022 with C++ packages
+- OpenSSL
+- Account on [N2YO](https://www.n2yo.com/), to generate API key
 
 ### Libcurl build
 
@@ -16,13 +16,13 @@ In case of libcurl errors, download it and build it yourself.
 
 Download it from here [curl github](https://github.com/curl/curl) and then unzip/untar it. Then use this command (make sure you have OpenSSL!) and change the paths to match the location of the files on your computer.
 
-``` cmake
+```cmake
 cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCURL_STATICLIB=ON -DCURL_USE_LIBPSL=OFF -DCURL_USE_OPENSSL=ON -DOPENSSL_ROOT_DIR="C:\Program Files\OpenSSL-Win64" -DOPENSSL_INCLUDE_DIR="PATH_TO_OPENSSL_INCLUDE_DIR" -DOPENSSL_CRYPTO_LIBRARY="PATH_TO_OPENSSL_LIBCRYPTO_LIB" -DOPENSSL_SSL_LIBRARY="PATH_TO_OPENSSL_LIBSSL_LIB"
 ```
 
 For example:
 
-``` cmake
+```cmake
 cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCURL_STATICLIB=ON -DCURL_USE_LIBPSL=OFF -DCURL_USE_OPENSSL=ON -DOPENSSL_ROOT_DIR="C:\Program Files\OpenSSL-Win64" -DOPENSSL_INCLUDE_DIR="C:\Program Files\OpenSSL-Win64\include" -DOPENSSL_CRYPTO_LIBRARY="C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD\libcrypto.lib" -DOPENSSL_SSL_LIBRARY="C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD\libssl.lib"
 ```
 
@@ -56,7 +56,26 @@ If you check everything, and your IDE is not complaining about anything, you can
 
 ### Web App (NEXT.JS)
 
-TODO
+#### Prerequisites
+
+- [Node.js](https://nodejs.org/) (version 18 or newer is recommended)
+- [npm](https://www.npmjs.com/) (comes with Node.js)
+
+#### Installation
+
+Install the project dependencies:
+
+```bash
+npm install
+```
+
+#### Running the Development Server
+
+Start the development server with:
+
+```bash
+npm run dev
+```
 
 ## Application
 
@@ -90,18 +109,21 @@ The web app also allows you to toggle the country's border line and get satellit
 
 ### OpenGL APP
 
-* C++ 17
-* [OpenGL 3.3](https://www.opengl.org/) - Graphics API
-* [LibCurl](https://curl.se/libcurl/c/) - for fetching API data
-* [nlohmannJson](https://github.com/nlohmann/json) - JSON parser
-* [N2YO](https://www.n2yo.com/) - as API for sattelites info
-* [GeoJSON](https://geojson.org/) - as a JSON type for parsing countries border data
-* [Natural Earth](https://www.naturalearthdata.com/) - for getting GeoJSON data about countries borders
-* [libsgp4](https://github.com/dnwrnr/sgp4) - For handling the TLE2 data
-* [stb_image](https://github.com/nothings/stb) - For Image processing
-* [assimp](https://github.com/assimp/assimp) - Loading `.obj` model into OpenGL
-* [httplib](https://github.com/yhirose/cpp-httplib) - HTTP server
+- C++ 17
+- [OpenGL 3.3](https://www.opengl.org/) - Graphics API
+- [LibCurl](https://curl.se/libcurl/c/) - for fetching API data
+- [nlohmannJson](https://github.com/nlohmann/json) - JSON parser
+- [N2YO](https://www.n2yo.com/) - as API for sattelites info
+- [GeoJSON](https://geojson.org/) - as a JSON type for parsing countries border data
+- [Natural Earth](https://www.naturalearthdata.com/) - for getting GeoJSON data about countries borders
+- [libsgp4](https://github.com/dnwrnr/sgp4) - For handling the TLE2 data
+- [stb_image](https://github.com/nothings/stb) - For Image processing
+- [assimp](https://github.com/assimp/assimp) - Loading `.obj` model into OpenGL
+- [httplib](https://github.com/yhirose/cpp-httplib) - HTTP server
 
 ### Web APP
 
-ToDo
+- [NextJS 15](https://nextjs.org/) – Full-stack React framework for building scalable web applications.
+- [React 19](https://react.dev/) – Library for building user interfaces.
+- [Tailwindcss](https://tailwindcss.com/) – Utility-first CSS framework for rapid UI development.
+- [Shadcn UI](https://ui.shadcn.com/) – Accessible and customizable React components built on top of Radix UI.
